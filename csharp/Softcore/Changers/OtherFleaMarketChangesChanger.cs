@@ -1,5 +1,8 @@
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.Models.Utils;
+using SPTarkov.Server.Core.Servers;
+using SPTarkov.Server.Core.Services;
+using SPTarkov.Server.Core.Models.Spt.Config;
 using Softcore.Config;
 
 namespace Softcore.Changers;
@@ -16,14 +19,17 @@ namespace Softcore.Changers;
 public class OtherFleaMarketChangesChanger
 {
     private readonly ISptLogger<OtherFleaMarketChangesChanger> _logger;
-    // TODO: Add SPT service dependencies when API is confirmed
-    // private readonly IConfigServer _configServer;
-    // private readonly IDatabaseService _databaseService;
+    private readonly ConfigServer _configServer;
+    private readonly DatabaseService _databaseService;
 
-    public OtherFleaMarketChangesChanger(ISptLogger<OtherFleaMarketChangesChanger> logger)
+    public OtherFleaMarketChangesChanger(
+        ISptLogger<OtherFleaMarketChangesChanger> logger,
+        ConfigServer configServer,
+        DatabaseService databaseService)
     {
         _logger = logger;
-        // TODO: Inject SPT services: IConfigServer, IDatabaseService
+        _configServer = configServer;
+        _databaseService = databaseService;
     }
 
     public void Apply(OtherFleaMarketChangesConfig config)
@@ -36,14 +42,13 @@ public class OtherFleaMarketChangesChanger
 
         try
         {
-            // TODO: Implement when SPT APIs are available
-            // DoSellingOnFlea(config.SellingOnFlea);
-            // AdjustOnlyFIRforBarters(config.OnlyFoundInRaidItemsAllowedForBarters);
-            // AdjustPristineItems(config.FleaPristineItems);
-            // IncreaseFleaPrices(config.FleaPricesIncreased);
-            // UpdateRagfairMinUserLevel(config.FleaMarketOpenAtLevel);
+            DoSellingOnFlea(config.SellingOnFlea);
+            AdjustOnlyFIRforBarters(config.OnlyFoundInRaidItemsAllowedForBarters);
+            AdjustPristineItems(config.FleaPristineItems);
+            IncreaseFleaPrices(config.FleaPricesIncreased);
+            UpdateRagfairMinUserLevel(config.FleaMarketOpenAtLevel);
 
-            _logger.Warning("[Softcore] Other flea market changes - NOT YET IMPLEMENTED (awaiting API research)");
+            _logger.Success("[Softcore] Other flea market changes applied successfully");
         }
         catch (Exception ex)
         {
@@ -51,8 +56,6 @@ public class OtherFleaMarketChangesChanger
         }
     }
 
-    // TODO: Implement these methods after API research
-    /*
     private void DoSellingOnFlea(bool enabled)
     {
         var ragfairConfig = _configServer.GetConfig<RagfairConfig>();
@@ -93,5 +96,4 @@ public class OtherFleaMarketChangesChanger
         var globals = _databaseService.GetGlobals();
         globals.Configuration.RagFair.MinUserLevel = level;
     }
-    */
 }

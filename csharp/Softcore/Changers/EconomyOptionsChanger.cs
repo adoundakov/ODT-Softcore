@@ -45,8 +45,7 @@ public class EconomyOptionsChanger
         if (config.DisableFleaMarketCompletely)
         {
             _logger.Info("[Softcore] Flea market completely disabled - setting unlock to level 99");
-            // TODO: Implement when OtherFleaMarketChangesChanger has UpdateRagfairMinUserLevel
-            // _otherFleaChanger.UpdateRagfairMinUserLevel(99);
+            _otherFleaChanger.UpdateRagfairMinUserLevel(99);
             return;
         }
 

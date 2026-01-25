@@ -1,5 +1,7 @@
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.Models.Utils;
+using SPTarkov.Server.Core.Services;
+using SPTarkov.Server.Core.Models.Common;
 using Softcore.Config;
 
 namespace Softcore.Changers;
@@ -11,13 +13,14 @@ namespace Softcore.Changers;
 public class PriceRebalanceChanger
 {
     private readonly ISptLogger<PriceRebalanceChanger> _logger;
-    // TODO: Inject when API is confirmed:
-    // - IDatabaseService (GetHandbook(), GetPrices())
-    // - IHandbookHelper (HydrateLookup())
+    private readonly DatabaseService _databaseService;
 
-    public PriceRebalanceChanger(ISptLogger<PriceRebalanceChanger> logger)
+    public PriceRebalanceChanger(
+        ISptLogger<PriceRebalanceChanger> logger,
+        DatabaseService databaseService)
     {
         _logger = logger;
+        _databaseService = databaseService;
     }
 
     public void Apply(PriceRebalanceConfig config)
@@ -32,13 +35,12 @@ public class PriceRebalanceChanger
         {
             _logger.Info("[Softcore] Applying price rebalance...");
 
-            // TODO: Implement after API research
-            // if (config.ItemFixes)
-            //     DoItemFixes();
-            //
-            // DoPriceRebalance();
+            if (config.ItemFixes)
+                DoItemFixes();
 
-            _logger.Warning("[Softcore] Price rebalance - NOT YET IMPLEMENTED (awaiting API research)");
+            DoPriceRebalance();
+
+            _logger.Success("[Softcore] Price rebalance applied successfully");
         }
         catch (Exception ex)
         {
@@ -46,8 +48,6 @@ public class PriceRebalanceChanger
         }
     }
 
-    // TODO: Implement after confirming API
-    /*
     private void DoItemFixes()
     {
         // Set specific item prices in handbook
@@ -55,7 +55,8 @@ public class PriceRebalanceChanger
         var handbookItems = handbook.Items;
 
         // Example: fix Bitcoin price
-        var bitcoinEntry = handbookItems.FirstOrDefault(h => h.Id == "59faff1d86f7746c51718c9c");
+        var bitcoinId = (MongoId)"59faff1d86f7746c51718c9c";
+        var bitcoinEntry = handbookItems.FirstOrDefault(h => h.Id == bitcoinId);
         if (bitcoinEntry != null)
         {
             bitcoinEntry.Price = 100000;
@@ -79,10 +80,8 @@ public class PriceRebalanceChanger
             }
         }
 
-        // Refresh handbook cache
-        _handbookHelper.HydrateLookup();
+        // Note: Handbook cache is auto-populated - no need to call HydrateLookup()
 
         _logger.Info($"[Softcore] Synced {handbook.Items.Count} flea prices to handbook");
     }
-    */
 }

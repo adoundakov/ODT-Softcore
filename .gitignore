@@ -4,3 +4,5 @@ dist/
 *.js
 *.map
 types/
+
+**/.DS_Store

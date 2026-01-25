@@ -1,5 +1,9 @@
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.Models.Utils;
+using SPTarkov.Server.Core.Servers;
+using SPTarkov.Server.Core.Services;
+using SPTarkov.Server.Core.Models.Spt.Config;
+using SPTarkov.Server.Core.Models.Common;
 using Softcore.Config;
 using Softcore.Assets;
 
@@ -13,13 +17,17 @@ namespace Softcore.Changers;
 public class PacifistFleaMarketChanger
 {
     private readonly ISptLogger<PacifistFleaMarketChanger> _logger;
-    // TODO: Inject when API is confirmed:
-    // - IConfigServer (RagfairConfig)
-    // - IDatabaseService (GetItems(), GetHandbook(), GetPrices())
+    private readonly ConfigServer _configServer;
+    private readonly DatabaseService _databaseService;
 
-    public PacifistFleaMarketChanger(ISptLogger<PacifistFleaMarketChanger> logger)
+    public PacifistFleaMarketChanger(
+        ISptLogger<PacifistFleaMarketChanger> logger,
+        ConfigServer configServer,
+        DatabaseService databaseService)
     {
         _logger = logger;
+        _configServer = configServer;
+        _databaseService = databaseService;
     }
 
     public void Apply(PacifistFleaMarketConfig config)
@@ -34,13 +42,12 @@ public class PacifistFleaMarketChanger
         {
             _logger.Info("[Softcore] Applying pacifist flea market restrictions...");
 
-            // TODO: Implement after API research
-            // PacifistFleaMarket(config);
-            // AllowWhitelistedItems(config.Whitelist);
-            // AllowQuestKeys(config.QuestKeys);
-            // AllowMarkedKeys(config.MarkedKeys);
+            PacifistFleaMarket(config);
+            AllowWhitelistedItems(config.Whitelist);
+            AllowQuestKeys(config.QuestKeys);
+            AllowMarkedKeys(config.MarkedKeys);
 
-            _logger.Warning("[Softcore] Pacifist flea market - NOT YET IMPLEMENTED (awaiting API research)");
+            _logger.Success("[Softcore] Pacifist flea market applied successfully");
         }
         catch (Exception ex)
         {
@@ -48,13 +55,16 @@ public class PacifistFleaMarketChanger
         }
     }
 
-    // TODO: Implement after confirming API
-    /*
     private void PacifistFleaMarket(PacifistFleaMarketConfig config)
     {
         var items = _databaseService.GetItems();
         var handbook = _databaseService.GetHandbook();
         var ragfairConfig = _configServer.GetConfig<RagfairConfig>();
+
+        // Convert whitelist handbook IDs to MongoId for comparison
+        var whitelistedCategories = FleaMarketData.FleaListingsWhitelistHandbook
+            .Select(id => (MongoId)id)
+            .ToHashSet();
 
         int blacklistedCount = 0;
 
@@ -65,7 +75,7 @@ public class PacifistFleaMarketChanger
             if (handbookEntry == null)
                 continue;
 
-            if (!FleaMarketData.FleaListingsWhitelistHandbook.Contains(handbookEntry.ParentId))
+            if (!whitelistedCategories.Contains(handbookEntry.ParentId))
             {
                 // Add to ragfair blacklist
                 ragfairConfig.Dynamic.Blacklist.Custom.Add(itemId);
@@ -85,13 +95,15 @@ public class PacifistFleaMarketChanger
         var prices = _databaseService.GetPrices();
         var ragfairConfig = _configServer.GetConfig<RagfairConfig>();
 
-        foreach (var itemId in FleaMarketData.Whitelist)
+        foreach (var itemIdStr in FleaMarketData.Whitelist)
         {
+            var itemId = (MongoId)itemIdStr;
+
             // Remove from blacklist
             ragfairConfig.Dynamic.Blacklist.Custom.Remove(itemId);
 
             // Mark as sellable
-            if (items.TryGetValue(itemId, out var item))
+            if (items.TryGetValue(itemId, out var item) && item.Properties != null)
             {
                 item.Properties.CanSellOnRagfair = true;
             }
@@ -115,13 +127,15 @@ public class PacifistFleaMarketChanger
         var prices = _databaseService.GetPrices();
         var ragfairConfig = _configServer.GetConfig<RagfairConfig>();
 
-        foreach (var keyId in KeysData.QuestKeys)
+        foreach (var keyIdStr in KeysData.QuestKeys)
         {
+            var keyId = (MongoId)keyIdStr;
+
             // Remove from blacklist
             ragfairConfig.Dynamic.Blacklist.Custom.Remove(keyId);
 
             // Mark as sellable
-            if (items.TryGetValue(keyId, out var item))
+            if (items.TryGetValue(keyId, out var item) && item.Properties != null)
             {
                 item.Properties.CanSellOnRagfair = true;
             }
@@ -145,13 +159,15 @@ public class PacifistFleaMarketChanger
         var prices = _databaseService.GetPrices();
         var ragfairConfig = _configServer.GetConfig<RagfairConfig>();
 
-        foreach (var keyId in KeysData.MarkedKeys)
+        foreach (var keyIdStr in KeysData.MarkedKeys)
         {
+            var keyId = (MongoId)keyIdStr;
+
             // Remove from blacklist
             ragfairConfig.Dynamic.Blacklist.Custom.Remove(keyId);
 
             // Mark as sellable
-            if (items.TryGetValue(keyId, out var item))
+            if (items.TryGetValue(keyId, out var item) && item.Properties != null)
             {
                 item.Properties.CanSellOnRagfair = true;
             }
@@ -165,5 +181,4 @@ public class PacifistFleaMarketChanger
 
         _logger.Info($"[Softcore] Allowed {KeysData.MarkedKeys.Count} marked keys with {config.PriceMultiplier}x multiplier");
     }
-    */
 }

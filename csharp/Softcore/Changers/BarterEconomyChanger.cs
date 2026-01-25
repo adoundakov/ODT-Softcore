@@ -1,5 +1,10 @@
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.Models.Utils;
+using SPTarkov.Server.Core.Servers;
+using SPTarkov.Server.Core.Services;
+using SPTarkov.Server.Core.Helpers;
+using SPTarkov.Server.Core.Models.Spt.Config;
+using SPTarkov.Server.Core.Models.Common;
 using Softcore.Config;
 using Softcore.Assets;
 
@@ -13,14 +18,20 @@ namespace Softcore.Changers;
 public class BarterEconomyChanger
 {
     private readonly ISptLogger<BarterEconomyChanger> _logger;
-    // TODO: Inject when SPT API namespaces are confirmed:
-    // - IConfigServer (for RagfairConfig)
-    // - IDatabaseService (for GetItems(), GetPrices())
-    // - IItemHelper (for IsOfBaseclasses())
+    private readonly ConfigServer _configServer;
+    private readonly DatabaseService _databaseService;
+    private readonly ItemHelper _itemHelper;
 
-    public BarterEconomyChanger(ISptLogger<BarterEconomyChanger> logger)
+    public BarterEconomyChanger(
+        ISptLogger<BarterEconomyChanger> logger,
+        ConfigServer configServer,
+        DatabaseService databaseService,
+        ItemHelper itemHelper)
     {
         _logger = logger;
+        _configServer = configServer;
+        _databaseService = databaseService;
+        _itemHelper = itemHelper;
     }
 
     public void Apply(BarterEconomyConfig config)
@@ -35,15 +46,14 @@ public class BarterEconomyChanger
         {
             _logger.Info("[Softcore] Applying barter economy settings...");
 
-            // TODO: Implement after API research confirms exact types
-            // DoBarterEconomy(config);
-            // AdjustCashOffers(config.CashOffersPercentage);
-            // AdjustBarterPriceVariance(config.BarterPriceVariance);
-            // AdjustItemCountMax(config.ItemCountMax);
-            // AdjustOfferItemCount(config.OfferItemCount);
-            // AdjustNonStackableAmount(config.NonStackableCount);
+            DoBarterEconomy(config);
+            AdjustCashOffers(config.CashOffersPercentage);
+            AdjustBarterPriceVariance(config.BarterPriceVariance);
+            AdjustItemCountMax(config.ItemCountMax);
+            AdjustOfferItemCount(config.OfferItemCount);
+            AdjustNonStackableAmount(config.NonStackableCount);
 
-            _logger.Warning("[Softcore] Barter economy - NOT YET IMPLEMENTED (awaiting API research)");
+            _logger.Success("[Softcore] Barter economy applied successfully");
         }
         catch (Exception ex)
         {
@@ -51,18 +61,20 @@ public class BarterEconomyChanger
         }
     }
 
-    // TODO: Implement these methods after confirming SPT 4.0 API
-    /*
     private void DoBarterEconomy(BarterEconomyConfig config)
     {
         // 1. Compute barter blacklist = all base classes NOT in whitelist
-        var barterBlacklist = FleaMarketData.ActualBaseClasses
+        var barterBlacklistStrings = FleaMarketData.ActualBaseClasses
             .Where(bc => !FleaMarketData.FleaBarterRequestWhitelist.Contains(bc))
             .ToList();
 
+        var barterBlacklist = barterBlacklistStrings
+            .Select(bc => (MongoId)bc)
+            .ToHashSet();
+
         // 2. Apply to ragfair config
         var ragfairConfig = _configServer.GetConfig<RagfairConfig>();
-        ragfairConfig.Dynamic.Barter.ItemTypeBlacklist = barterBlacklist.ToHashSet();
+        ragfairConfig.Dynamic.Barter.ItemTypeBlacklist = barterBlacklist;
         ragfairConfig.Dynamic.Barter.MinRoubleCostToBecomeBarter = 100;
 
         // 3. Adjust flea prices for quest items and non-sellable items
@@ -73,13 +85,13 @@ public class BarterEconomyChanger
         {
             if (item.Type == "Item" &&
                 !IsOfBaseClasses(itemId, barterBlacklist) &&
-                item.Parent != "543be5dd4bdc2deb348b4569") // MONEY base class
+                item.Parent != (MongoId)"543be5dd4bdc2deb348b4569") // MONEY base class
             {
-                if (item.Properties.QuestItem == true)
+                if (item.Properties?.QuestItem == true)
                 {
                     fleaPrices[itemId] = 0;
                 }
-                else if (!item.Properties.CanSellOnRagfair.GetValueOrDefault(false))
+                else if (!item.Properties?.CanSellOnRagfair.GetValueOrDefault(false) ?? false)
                 {
                     fleaPrices[itemId] = 0;
                 }
@@ -89,10 +101,10 @@ public class BarterEconomyChanger
         // 4. Apply whitelist overrides
         foreach (var (itemId, price) in FleaMarketData.RequestWhitelist)
         {
-            fleaPrices[itemId] = price;
+            fleaPrices[(MongoId)itemId] = price;
         }
 
-        _logger.Info($"[Softcore] Barter blacklist: {barterBlacklist.Count} base classes");
+        _logger.Info($"[Softcore] Barter blacklist: {barterBlacklistStrings.Count} base classes");
     }
 
     private void AdjustCashOffers(int cashOffersPercentage)
@@ -117,19 +129,19 @@ public class BarterEconomyChanger
     private void AdjustOfferItemCount(MinMax range)
     {
         var ragfairConfig = _configServer.GetConfig<RagfairConfig>();
-        ragfairConfig.Dynamic.OfferItemCount = new { Min = range.Min, Max = range.Max };
+        // OfferItemCount is a Dictionary<string, MinMax<int>> - update the "default" key
+        ragfairConfig.Dynamic.OfferItemCount["default"] = new MinMax<int>(range.Min, range.Max);
     }
 
     private void AdjustNonStackableAmount(MinMax range)
     {
         var ragfairConfig = _configServer.GetConfig<RagfairConfig>();
-        ragfairConfig.Dynamic.NonStackableCount = new { Min = range.Min, Max = range.Max };
+        // NonStackableCount is a MinMax<int> - replace the entire object (records are immutable)
+        ragfairConfig.Dynamic.NonStackableCount = new MinMax<int>(range.Min, range.Max);
     }
 
-    private bool IsOfBaseClasses(string itemId, List<string> baseClasses)
+    private bool IsOfBaseClasses(MongoId itemId, HashSet<MongoId> baseClasses)
     {
-        // Use ItemHelper.IsOfBaseclasses() when available
         return _itemHelper.IsOfBaseclasses(itemId, baseClasses);
     }
-    */
 }
