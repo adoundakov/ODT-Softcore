@@ -48,6 +48,7 @@ public class BarterEconomyChanger
 
             DoBarterEconomy(config);
             AdjustCashOffers(config.CashOffersPercentage);
+            SetupRandomCurrencyDistribution();
             AdjustBarterPriceVariance(config.BarterPriceVariance);
             AdjustItemCountMax(config.ItemCountMax);
             AdjustOfferItemCount(config.OfferItemCount);
@@ -112,6 +113,21 @@ public class BarterEconomyChanger
         // Inverse: cashOffersPercentage=0 means 100% barter
         var ragfairConfig = _configServer.GetConfig<RagfairConfig>();
         ragfairConfig.Dynamic.Barter.ChancePercent = 100 - cashOffersPercentage;
+    }
+
+    private void SetupRandomCurrencyDistribution()
+    {
+        var ragfairConfig = _configServer.GetConfig<RagfairConfig>();
+
+        // Set equal distribution across all three currencies for random selection
+        // Roubles: 5449016a4bdc2d6f028b456f
+        // Euros: 569668774bdc2da2298b4568
+        // Dollars: 5696686a4bdc2da3298b456a
+        ragfairConfig.Dynamic.Currencies[(MongoId)"5449016a4bdc2d6f028b456f"] = 33; // RUB
+        ragfairConfig.Dynamic.Currencies[(MongoId)"569668774bdc2da2298b4568"] = 33; // EUR
+        ragfairConfig.Dynamic.Currencies[(MongoId)"5696686a4bdc2da3298b456a"] = 34; // USD
+
+        _logger.Info("[Softcore] Currency distribution: 33% RUB, 33% EUR, 34% USD");
     }
 
     private void AdjustBarterPriceVariance(int variancePercent)

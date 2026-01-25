@@ -30,7 +30,7 @@ public class EconomyOptionsConfig
 public class BarterEconomyConfig
 {
     public bool Enabled { get; set; } = true;
-    public int CashOffersPercentage { get; set; } = 0;        // 0 = pure barter
+    public int CashOffersPercentage { get; set; } = 15;       // 15% cash, 85% barter
     public int BarterPriceVariance { get; set; } = 50;         // ±50%
     public MinMax OfferItemCount { get; set; } = new() { Min = 10, Max = 20 };
     public MinMax NonStackableCount { get; set; } = new() { Min = 1, Max = 2 };

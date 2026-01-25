@@ -48,7 +48,10 @@ public class Plugin : IOnLoad
     {
         try
         {
-            var configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config", "config.json");
+            // Get the mod's directory from the assembly location
+            var assemblyLocation = Assembly.GetExecutingAssembly().Location;
+            var modDirectory = Path.GetDirectoryName(assemblyLocation);
+            var configPath = Path.Combine(modDirectory!, "config", "config.json");
 
             if (!File.Exists(configPath))
             {

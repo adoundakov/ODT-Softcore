@@ -27,7 +27,7 @@
     },
     "barterEconomy": {
       "enabled": true,
-      "cashOffersPercentage": 0,
+      "cashOffersPercentage": 15,
       "barterPriceVariance": 50,
       "offerItemCount": { "min": 10, "max": 20 },
       "nonStackableCount": { "min": 1, "max": 2 },
