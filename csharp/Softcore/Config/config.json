@@ -1,0 +1,51 @@
+{
+  "general": {
+    "enabled": true,
+    "debug": false
+  },
+  "economyOptions": {
+    "enabled": true,
+    "disableFleaMarketCompletely": false,
+    "priceRebalance": {
+      "enabled": true,
+      "itemFixes": true
+    },
+    "pacifistFleaMarket": {
+      "enabled": true,
+      "whitelist": {
+        "enabled": true,
+        "priceMultiplier": 2
+      },
+      "questKeys": {
+        "enabled": true,
+        "priceMultiplier": 2
+      },
+      "markedKeys": {
+        "enabled": true,
+        "priceMultiplier": 2
+      }
+    },
+    "barterEconomy": {
+      "enabled": true,
+      "cashOffersPercentage": 0,
+      "barterPriceVariance": 50,
+      "offerItemCount": { "min": 10, "max": 20 },
+      "nonStackableCount": { "min": 1, "max": 2 },
+      "itemCountMax": 2,
+      "unbanBitcoinsForBarters": false
+    },
+    "otherFleaMarketChanges": {
+      "enabled": true,
+      "sellingOnFlea": false,
+      "fleaMarketOpenAtLevel": 5,
+      "fleaPricesIncreased": 1.3,
+      "fleaPristineItems": true,
+      "onlyFoundInRaidItemsAllowedForBarters": true
+    }
+  },
+  "craftingChanges": {
+    "enabled": true,
+    "craftingRebalance": true,
+    "additionalCraftingRecipes": true
+  }
+}
