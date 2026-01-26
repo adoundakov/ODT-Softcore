@@ -13,14 +13,17 @@ public class Plugin : IOnLoad
 {
     private readonly ISptLogger<Plugin> _logger;
     private readonly EconomyOptionsChanger _economyChanger;
+    private readonly CraftingChangesChanger _craftingChanger;
     private Configuration? _config;
 
     public Plugin(
         ISptLogger<Plugin> logger,
-        EconomyOptionsChanger economyChanger)
+        EconomyOptionsChanger economyChanger,
+        CraftingChangesChanger craftingChanger)
     {
         _logger = logger;
         _economyChanger = economyChanger;
+        _craftingChanger = craftingChanger;
     }
 
     public async Task OnLoad()
@@ -40,6 +43,9 @@ public class Plugin : IOnLoad
 
         // Apply economy changes
         _economyChanger.Apply(_config.EconomyOptions);
+
+        // Apply crafting changes
+        _craftingChanger.Apply(_config.CraftingChanges);
 
         _logger.Success("[Softcore] All changes applied successfully");
     }
