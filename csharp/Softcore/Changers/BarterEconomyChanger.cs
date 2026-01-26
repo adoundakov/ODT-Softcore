@@ -15,6 +15,7 @@ namespace Softcore.Changers;
 /// Controls barter chance, price variance, item counts, and blacklists.
 /// </summary>
 [Injectable]
+#pragma warning disable CS0618 // ConfigServer replacement API not yet available in current SPT version
 public class BarterEconomyChanger
 {
     private readonly ISptLogger<BarterEconomyChanger> _logger;
@@ -123,9 +124,9 @@ public class BarterEconomyChanger
         // Roubles: 5449016a4bdc2d6f028b456f
         // Euros: 569668774bdc2da2298b4568
         // Dollars: 5696686a4bdc2da3298b456a
-        ragfairConfig.Dynamic.Currencies[(MongoId)"5449016a4bdc2d6f028b456f"] = 33; // RUB
-        ragfairConfig.Dynamic.Currencies[(MongoId)"569668774bdc2da2298b4568"] = 33; // EUR
-        ragfairConfig.Dynamic.Currencies[(MongoId)"5696686a4bdc2da3298b456a"] = 34; // USD
+        ragfairConfig.Dynamic.OfferCurrencyChangePercent[(MongoId)"5449016a4bdc2d6f028b456f"] = 33; // RUB
+        ragfairConfig.Dynamic.OfferCurrencyChangePercent[(MongoId)"569668774bdc2da2298b4568"] = 33; // EUR
+        ragfairConfig.Dynamic.OfferCurrencyChangePercent[(MongoId)"5696686a4bdc2da3298b456a"] = 34; // USD
 
         _logger.Info("[Softcore] Currency distribution: 33% RUB, 33% EUR, 34% USD");
     }
@@ -161,3 +162,4 @@ public class BarterEconomyChanger
         return _itemHelper.IsOfBaseclasses(itemId, baseClasses);
     }
 }
+#pragma warning restore CS0618

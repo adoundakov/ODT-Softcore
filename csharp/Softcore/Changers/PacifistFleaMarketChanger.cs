@@ -14,6 +14,7 @@ namespace Softcore.Changers;
 /// Allows whitelisted items, quest keys, and marked keys with price multipliers.
 /// </summary>
 [Injectable]
+#pragma warning disable CS0618 // ConfigServer replacement API not yet available in current SPT version
 public class PacifistFleaMarketChanger
 {
     private readonly ISptLogger<PacifistFleaMarketChanger> _logger;
@@ -182,3 +183,4 @@ public class PacifistFleaMarketChanger
         _logger.Info($"[Softcore] Allowed {KeysData.MarkedKeys.Count} marked keys with {config.PriceMultiplier}x multiplier");
     }
 }
+#pragma warning restore CS0618

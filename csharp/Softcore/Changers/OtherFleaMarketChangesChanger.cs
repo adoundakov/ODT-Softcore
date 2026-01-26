@@ -16,6 +16,7 @@ namespace Softcore.Changers;
 /// - Flea unlock level
 /// </summary>
 [Injectable]
+#pragma warning disable CS0618 // ConfigServer replacement API not yet available in current SPT version
 public class OtherFleaMarketChangesChanger
 {
     private readonly ISptLogger<OtherFleaMarketChangesChanger> _logger;
@@ -97,3 +98,4 @@ public class OtherFleaMarketChangesChanger
         globals.Configuration.RagFair.MinUserLevel = level;
     }
 }
+#pragma warning restore CS0618
