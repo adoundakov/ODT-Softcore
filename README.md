@@ -2,6 +2,12 @@
 
 BETA VERSION. WORK IN PROGRESS. Looking for community feedback. Use at your own risk. New profile highly recommended. 
 
+**Version 4.1.0 targets SPT 4.1.5** (C# server mod in `csharp/`; the `SPT411` branch name predates the 4.1.5 retarget).
+The TypeScript sources in `src/` are the SPT 3.11 mod and are kept as the reference for the port. Only the economy and
+crafting features are ported so far — see `csharp/` and the Configuration section below.
+
+Build: `cd csharp && dotnet build -c Release` → `csharp/Softcore/ReleaseZip/DukeWendigo-Softcore-4.1.0.zip`, unzip into your SPT folder.
+
 ## Flea market rebalance features: 
 - "Pacifist" flea market (and Fence), only meds, barter items, food and info items can be bought.
 - Random barter ONLY economy - you can only purchase those items on the flea using FIR (or crafted) items.

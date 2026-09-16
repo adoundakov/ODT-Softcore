@@ -6,15 +6,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is "ODT-Softcore", a mod for SPT (Single Player Tarkov) that rebalances the game into a survival RPG focused on economy, crafting, and barter-only trading. The mod implements a "pacifist flea market" where only meds, barter items, food, and info items can be bought using random barters with found-in-raid items.
 
+## Two implementations
+
+- `csharp/` — **the active mod**, a C# server mod for SPT 4.1.5 (`SPTushonka.*` 4.1.5 NuGet packages, net10.0).
+  Currently ports only `economyOptions` and `craftingChanges`. Structure mirrors the TS mod: `Plugin.cs` (entry,
+  `IOnLoad` at `Preload + 1`), `Changers/`, `Assets/`, `Config/` (`Configuration.cs` POCO + `config.json`).
+  Migration plan and status live in `plans/` (untracked).
+- `src/` — the original TypeScript mod for SPT 3.11. Kept as the reference for porting; the rest of this file
+  describes it.
+
 ## Build Commands
 
+C# (SPT 4.1):
+```bash
+cd csharp && dotnet build                 # Debug build, 0 warnings expected
+cd csharp && dotnet build -c Release      # + csharp/Softcore/ReleaseZip/DukeWendigo-Softcore-{version}.zip
+```
+Local SPT server source for API lookups: `../server-csharp` (tag 4.1.5); examples: `../spt-server-mod-examples`.
+
+TypeScript (SPT 3.11, legacy):
 ```bash
 npm run setup      # Install dependencies (first time setup)
 npm run build      # Build and package mod to dist/softcore-{version}.zip
 npm run buildinfo  # Build with verbose logging
 ```
 
-The build process:
+The TS build process:
 - Compiles TypeScript to JavaScript
 - Packages files according to `.buildignore` rules
 - Creates a ZIP file in `dist/` directory that can be placed in SPT's `user/mods/` folder
