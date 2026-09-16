@@ -376,9 +376,92 @@ public class TraderChangesChanger(
     private string TraderName(MongoId traderId) =>
         _tradersTable.GetTrader(traderId)?.Base.Nickname ?? traderId.ToString();
 
+    /// <summary>
+    /// Skier trades in EUR: currency and balance, loyalty thresholds (PaymentService converts every sale
+    /// into the trader's currency before adding to SalesSum, so MinSalesSum must shrink by the same
+    /// factor), every RUB-priced assort and the RUB stacks in his quests' Success rewards.
+    /// </summary>
     private void DoSkierUsesEuros()
     {
-        _logger.Info("[Softcore] Skier uses Euros: not implemented yet");
+        var skier = _tradersTable.GetTrader(Traders.SKIER);
+        if (skier == null)
+        {
+            _logger.Warning("[Softcore] Skier not found, skipping");
+            return;
+        }
+
+        var euroPrice = _handbookHelper.GetTemplatePrice(ItemTpl.MONEY_EUROS);
+        if (euroPrice <= 0)
+        {
+            _logger.Warning($"[Softcore] EUR handbook price is {euroPrice}, skipping");
+            return;
+        }
+
+        skier.Base.Currency = CurrencyType.EUR;
+        skier.Base.BalanceEuro = 700000;
+
+        foreach (var loyaltyLevel in skier.Base.LoyaltyLevels ?? [])
+        {
+            if (loyaltyLevel.MinSalesSum.HasValue)
+            {
+                loyaltyLevel.MinSalesSum = (long)Math.Round(loyaltyLevel.MinSalesSum.Value / euroPrice);
+            }
+        }
+
+        // Skier sells EUR for RUB; that offer must stay in RUB
+        var eurOfferId = skier.Assort.Items.FirstOrDefault(item => item.Template == ItemTpl.MONEY_EUROS)?.Id;
+
+        var converted = 0;
+        foreach (var (assortId, schemes) in skier.Assort.BarterScheme)
+        {
+            if (assortId == eurOfferId) continue;
+
+            var price = schemes[0][0];
+            if (price.Template != ItemTpl.MONEY_ROUBLES || !price.Count.HasValue) continue;
+
+            price.Count = Math.Round(price.Count.Value / euroPrice, 2);
+            price.Template = ItemTpl.MONEY_EUROS;
+            converted++;
+        }
+
+        var rewards = 0;
+        foreach (var quest in _templateTable.Quests.Values)
+        {
+            if (quest.TraderId != Traders.SKIER) continue;
+
+            if (quest.Rewards == null || !quest.Rewards.TryGetValue("Success", out var successRewards))
+            {
+                _logger.Warning($"[Softcore] Quest {quest.Id} has no Success rewards, skipping");
+                continue;
+            }
+
+            foreach (var reward in successRewards)
+            {
+                foreach (var item in reward.Items ?? [])
+                {
+                    if (item.Template != ItemTpl.MONEY_ROUBLES) continue;
+
+                    item.Template = ItemTpl.MONEY_EUROS;
+                    if (item.Upd?.StackObjectsCount == null)
+                    {
+                        _logger.Warning($"[Softcore] Quest {quest.Id} rouble reward has no stack count, skipping");
+                        continue;
+                    }
+
+                    item.Upd.StackObjectsCount = Math.Ceiling(item.Upd.StackObjectsCount.Value / euroPrice);
+                    if (reward.Value == null)
+                    {
+                        _logger.Warning($"[Softcore] Quest {quest.Id} rouble reward has no value, skipping");
+                        continue;
+                    }
+
+                    reward.Value = Math.Ceiling(reward.Value.Value / euroPrice);
+                    rewards++;
+                }
+            }
+        }
+
+        _logger.Success($"[Softcore] Skier uses Euros: {converted} offers and {rewards} quest rewards converted at {euroPrice} RUB/EUR");
     }
 
     /// <summary>
