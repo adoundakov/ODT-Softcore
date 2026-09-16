@@ -49,7 +49,65 @@ Leveling traders and crafting is your only hope of survival.
 - Bigger Ammo Stacks x10
 
 ## Configuration:
-Extencive configuration for EVERY option in config.json
+All options live in `user/mods/Softcore/config/config.json`. The file must stay plain JSON (no comments) because the
+SPT server dashboard's config editor rewrites it through `System.Text.Json`. Changes take effect after a server restart.
+
+### `general`
+| Option | Default | Description |
+|---|---|---|
+| `enabled` | `true` | Enable or disable the mod. |
+| `debug` | `false` | Enable debugging mode. Currently does nothing. |
+
+### `economyOptions`
+| Option | Default | Description |
+|---|---|---|
+| `enabled` | `true` | Master toggle for all economy options below. |
+| `disableFleaMarketCompletely` | `false` | Completely disable flea market for a true HARDCORE experience. Still allows you to use the interface and see trader offers. Overrides all other flea changes below. |
+
+#### `economyOptions.priceRebalance`
+| Option | Default | Description |
+|---|---|---|
+| `enabled` | `true` | **CORE feature.** Completely removes the SPT flea price snapshot from LIVE and matches prices to the internal handbook/trader prices. Everything else is balanced around this. NOT recommended to disable. |
+| `itemFixes` | `true` | Handbook price fixes for important items like the intel folder and military flash drive. |
+
+#### `economyOptions.pacifistFleaMarket`
+| Option | Default | Description |
+|---|---|---|
+| `enabled` | `true` | **CORE feature.** Only meds, barter items, food and info items can be bought on the flea market. Uses the hardcoded handbook-category whitelist as filter. NOT recommended to disable. |
+| `whitelist.enabled` | `true` | A small list of items used in crafts and trader barters is available on flea. Uses the hardcoded item whitelist. |
+| `whitelist.priceMultiplier` | `2` | Flea price multiplier for those items. |
+| `questKeys.enabled` | `true` | Random-only QUEST keys are available on flea. Uses the hardcoded quest-key list. |
+| `questKeys.priceMultiplier` | `2` | Flea price multiplier for quest keys. |
+| `markedKeys.enabled` | `true` | Marked keys are available on flea. |
+| `markedKeys.priceMultiplier` | `2` | Flea price multiplier for marked keys. |
+
+#### `economyOptions.barterEconomy`
+| Option | Default | Description |
+|---|---|---|
+| `enabled` | `true` | **CORE feature.** Only allows buying items on flea using other random FiR or crafted items. Uses the hardcoded barter blacklist as filter for allowed items (meds, barter items, food and info items are enabled; exceptions are stimulants and fuel). NOT recommended to disable. |
+| `cashOffersPercentage` | `15` | Allow a small, random percentage of listings to be buyable for cash. 0 is a true barter-only economy (except the cheapest items like AA battery, an SPT limitation) — the preferred way to play, but sometimes a little too hard. 15% makes life just a bit easier and avoids item deadlocks. Recommendation: 0 to 15. |
+| `barterPriceVariance` | `50` | ± percent of price variance between an item listing and its barter value. Bigger number — more wild and varied random trades, e.g. a Defibrillator (224k) offered for a Lion (162k) or a Tank Battery (330k). This CORE feature makes the whole mod tick. More variance also means it is easier to find an offer you have an item for. Recommendation: 20–50. |
+| `offerItemCount` | `{ min: 10, max: 20 }` | Number of different offers per item. Too low a number breaks the SPT server with constant client errors on completed trades. |
+| `nonStackableCount` | `{ min: 1, max: 2 }` | Items available per individual offer. Max 2 feels nice — loot more, it might come in handy. |
+| `itemCountMax` | `2` | Maximum number of items asked for in a barter. Default 2 means 2-for-1 barters at most. |
+| `currencyDistribution` | `{ rub: 33, eur: 33, usd: 34 }` | Which currency the cash offers are listed in. Percentages, should add up to 100. SPT default is 78/14/8. |
+
+#### `economyOptions.otherFleaMarketChanges`
+| Option | Default | Description |
+|---|---|---|
+| `enabled` | `true` | Master toggle for all other flea market changes below. |
+| `sellingOnFlea` | `false` | NOT RECOMMENDED TO CHANGE. Default `false` forces the flea sell chance to 0 — no selling on flea at all. Setting it `true` allows selling weapons and other Softcore-blocked items like in vanilla. Not playtested or balanced around. |
+| `fleaMarketOpenAtLevel` | `5` | PMC level the flea market opens at. |
+| `fleaPricesIncreased` | `1.3` | Slightly increase flea prices to stimulate looting and crafting instead of buying everything on flea. With barter economy and variance enabled you still get many great trades below actual item value. Hustle! |
+| `fleaPristineItems` | `true` | Only pristine-condition items are offered on flea. |
+| `onlyFoundInRaidItemsAllowedForBarters` | `true` | Be a man, don't change this. Disabling it is borderline cheating: infinite money because of the variance changes. |
+
+### `craftingChanges`
+| Option | Default | Description |
+|---|---|---|
+| `enabled` | `true` | Master toggle for all crafting changes below. |
+| `craftingRebalance` | `true` | Major rebalance of crafting recipes around component rarity, usefulness, trader prices and plain "lore" logic. Some nerfs, but a lot of huge buffs. The idea is to make most crafts useful and/or profitable. |
+| `additionalCraftingRecipes` | `true` | New custom lore-friendly and balanced crafting recipes for 3-(b-TG), Adrenaline, L1, AHF1, CALOK, Ophthalmoscope, Zagustin, Obdolbos, OLOLO and the secure-container upgrades. |
 
 ## Notes:
 - No, you cannot use your new fastly mined bitcoins for barters. Because of well, reasons. Like inflation, man. It hits all of us. No one cares about crypto anymore, except you and your nerd friend Mechanic. 
