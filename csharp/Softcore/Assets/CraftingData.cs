@@ -1,11 +1,12 @@
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Hideout;
+using SPTarkov.Server.Core.Models.Enums;
 using SPTarkov.Server.Core.Models.Enums.Hideout;
 
 namespace Softcore.Assets;
 
 /// <summary>
-/// Represents an adjustment to an existing crafting recipe
+/// Represents an adjustment to an existing crafting recipe, matched by its end product.
 /// </summary>
 public class CraftingAdjustment
 {
@@ -20,402 +21,302 @@ public class CraftingAdjustment
 }
 
 /// <summary>
-/// Static data for crafting recipe adjustments and new recipes
+/// Static data for crafting recipe adjustments and new recipes.
+/// Ported 1:1 from <c>src/assets/productionAdjustments.ts</c> and <c>src/assets/recipes.ts</c>.
 /// </summary>
 public static class CraftingData
 {
     public static class Adjustments
     {
+        /// <summary>
+        /// Set <see cref="Requirement.Count"/> on every requirement that has one
+        /// </summary>
+        private static void SetAllRequirementCounts(HideoutProduction craft, int count)
+        {
+            if (craft.Requirements == null) return;
+            foreach (var requirement in craft.Requirements)
+            {
+                if (requirement.Count.HasValue)
+                {
+                    requirement.Count = count;
+                }
+            }
+        }
+
+        private static Requirement? FindItem(HideoutProduction craft, MongoId templateId) =>
+            craft.Requirements?.FirstOrDefault(r => r.TemplateId == templateId);
+
+        private static Requirement? FindArea(HideoutProduction craft) =>
+            craft.Requirements?.FirstOrDefault(r => r.Type == "Area");
+
         public static readonly List<CraftingAdjustment> All = new()
         {
-            // Simple count adjustments
-            new("5bc9b355d4351e6d1509862a", craft => craft.Count = 1), // BARTER_TOILET_PAPER
-            new("5c0111ab0db834001966914d", craft => craft.Count = 4), // BARTER_CLIN_WINDOW_CLEANER
-            new("5c12613b86f7743bbe2c3f76", craft => craft.Count = 2), // BARTER_PARACORD
-            new("5d1b385e86f774252167b98a", craft => craft.Count = 3), // DRINK_EMERGENCY_WATER_RATION
-            new("5d40407c86f774318526545a", craft => craft.Count = 3), // BARTER_CAN_OF_MAJAICA_COFFEE_BEANS
-            new("5448fee04bdc2dbc018b4567", craft => craft.Count = 16), // DRINK_BOTTLE_OF_WATER_06L
-            new("5ed515ece452db0eb56fc028", craft => craft.Count = 2), // STIM_MULE_STIMULANT_INJECTOR
-            new("60098ad7c2240c0fe85c570a", craft => craft.Count = 1), // MEDKIT_GRIZZLY_MEDICAL_KIT
-            new("5c10c8fd86f7743d7d706df3", craft => craft.Count = 3), // STIM_SJ6_TGLABS_COMBAT_STIMULANT_INJECTOR
-            new("5c052e6986f7746b207bc3c9", craft => craft.Count = 2), // INFO_TOPOGRAPHIC_SURVEY_MAPS
-            new("5bc9b720d4351e450201234b", craft => craft.Count = 2), // BARTER_MILITARY_CIRCUIT_BOARD
-            new("590a3c0a86f774385a33c450", craft => craft.Count = 4), // BARTER_SPARK_PLUG
-            new("62a09f32621468534a797acb", craft => craft.Count = 150), // AMMO_12G_PIRANHA
-            new("56dff421d2720b5f5a8b4567", craft => craft.Count = 180), // AMMO_545X39_BP
-            new("54527ac44bdc2d36668b4567", craft => craft.Count = 180), // AMMO_556X45_M855A1
+            new(ItemTpl.BARTER_TOILET_PAPER, craft => craft.Count = 1),
+            new(ItemTpl.BARTER_CLIN_WINDOW_CLEANER, craft => craft.Count = 4),
+            new(ItemTpl.BARTER_PARACORD, craft => craft.Count = 2),
 
-            // Find and modify specific requirements
-            new("590c60fc86f77412b13fddcf", craft => // BARTER_WATER_FILTER
+            new(ItemTpl.BARTER_CORRUGATED_HOSE, craft =>
             {
-                var requirement = craft.Requirements?.FirstOrDefault(r => r.TemplateId == "5c06779c86f77426e00dd782");
+                SetAllRequirementCounts(craft, 1);
+                craft.Count = 1;
+            }),
+
+            new(ItemTpl.BARTER_WATER_FILTER, craft =>
+            {
+                var requirement = FindItem(craft, ItemTpl.BARTER_GAS_MASK_AIR_FILTER);
                 if (requirement == null) return;
                 requirement.Count = 2;
             }),
 
-            new("5ed5160a87bb8443d10680b5", craft => // STIM_ETGCHANGE_REGENERATIVE_STIMULANT_INJECTOR
+            new(ItemTpl.DRINK_EMERGENCY_WATER_RATION, craft => craft.Count = 3),
+            new(ItemTpl.BARTER_CAN_OF_MAJAICA_COFFEE_BEANS, craft => craft.Count = 3),
+            new(ItemTpl.DRINK_BOTTLE_OF_WATER_06L, craft => craft.Count = 16),
+            new(ItemTpl.STIM_MULE_STIMULANT_INJECTOR, craft => craft.Count = 2),
+
+            new(ItemTpl.STIM_ETGCHANGE_REGENERATIVE_STIMULANT_INJECTOR, craft =>
             {
                 craft.Count = 2;
-                var requirement = craft.Requirements?.FirstOrDefault(r => r.TemplateId == "5c0e530286f7747fa1419862");
+                var requirement = FindItem(craft, ItemTpl.MEDICAL_CALOKB_HEMOSTATIC_APPLICATOR);
                 if (requirement == null) return;
                 requirement.Count = 2;
             }),
 
-            new("60098ad7c2240c0fe85c570a", craft => // MEDKIT_AFAK_TACTICAL_INDIVIDUAL_FIRST_AID_KIT
+            new(ItemTpl.MEDKIT_AFAK_TACTICAL_INDIVIDUAL_FIRST_AID_KIT, craft =>
             {
-                var req = craft.Requirements?.FirstOrDefault(r => r.TemplateId == "590c657e86f77412b013051d");
-                if (req == null) return;
-                req.Count = 1;
-                req = craft.Requirements?.FirstOrDefault(r => r.TemplateId == "5755356824597772cb798962");
-                if (req == null) return;
-                req.TemplateId = "5c0e530286f7747fa1419862";
+                var requirement = FindItem(craft, ItemTpl.MEDKIT_IFAK_INDIVIDUAL_FIRST_AID_KIT);
+                if (requirement == null) return;
+                requirement.Count = 1;
+                requirement = FindItem(craft, ItemTpl.MEDICAL_ARMY_BANDAGE);
+                if (requirement == null) return;
+                requirement.TemplateId = ItemTpl.MEDICAL_CALOKB_HEMOSTATIC_APPLICATOR;
             }),
 
-            new("5d02797c86f774203f38e30a", craft => // MEDICAL_SURV12_FIELD_SURGICAL_KIT
+            new(ItemTpl.MEDICAL_SURV12_FIELD_SURGICAL_KIT, craft =>
             {
-                var requirement = craft.Requirements?.FirstOrDefault(r => r.TemplateId == "5d02797c86f774203f38e30a");
+                var requirement = FindItem(craft, ItemTpl.MEDICAL_SURV12_FIELD_SURGICAL_KIT);
                 if (requirement == null) return;
                 requirement.Count = 2;
-                requirement.TemplateId = "5d02778e86f774203e7dedbe";
+                requirement.TemplateId = ItemTpl.MEDICAL_CMS_SURGICAL_KIT;
             }),
 
-            new("5c052fb986f7746b2101e909", craft => // BARTER_PORTABLE_DEFIBRILLATOR
+            new(ItemTpl.BARTER_PORTABLE_DEFIBRILLATOR, craft =>
             {
-                var requirement = craft.Requirements?.FirstOrDefault(r => r.TemplateId == "5733279d245977289b77ec24");
+                var requirement = FindItem(craft, ItemTpl.BARTER_PORTABLE_POWERBANK);
                 if (requirement == null) return;
                 requirement.Count = 4;
             }),
 
-            new("5d02778e86f774203e7dedbe", craft => // MEDICAL_CMS_SURGICAL_KIT
+            new(ItemTpl.BARTER_LEDX_SKIN_TRANSILLUMINATOR, craft => SetAllRequirementCounts(craft, 1)),
+
+            new(ItemTpl.MEDICAL_CMS_SURGICAL_KIT, craft =>
             {
-                var requirement = craft.Requirements?.FirstOrDefault(r => r.TemplateId == "5755356824597772cb798962");
+                var requirement = FindItem(craft, ItemTpl.BARTER_MEDICAL_TOOLS);
                 if (requirement == null) return;
                 requirement.Count = 2;
             }),
 
-            new("60b0f6c058e0b0481a09ad11", craft => // INFO_MILITARY_FLASH_DRIVE
+            new(ItemTpl.MEDKIT_GRIZZLY_MEDICAL_KIT, craft => craft.Count = 1),
+            new(ItemTpl.STIM_SJ6_TGLABS_COMBAT_STIMULANT_INJECTOR, craft => craft.Count = 3),
+            new(ItemTpl.INFO_TOPOGRAPHIC_SURVEY_MAPS, craft => craft.Count = 2),
+
+            new(ItemTpl.INFO_MILITARY_FLASH_DRIVE, craft =>
             {
                 craft.Count = 1;
-                var req = craft.Requirements?.FirstOrDefault(r => r.TemplateId == "590c2d4786f77470e92f38fd");
-                if (req == null) return;
-                req.TemplateId = "5c052e6986f7746b207bc3c9";
-                req = craft.Requirements?.FirstOrDefault(r => r.Type == "Area");
-                if (req == null) return;
-                req.RequiredLevel = 2;
-                if (craft.Requirements != null)
-                {
-                    foreach (var x in craft.Requirements)
-                    {
-                        if (x.Count.HasValue)
-                        {
-                            x.Count = 1;
-                        }
-                    }
-                }
+                var requirement = FindItem(craft, ItemTpl.INFO_SECURE_FLASH_DRIVE);
+                if (requirement == null) return;
+                requirement.TemplateId = ItemTpl.BARTER_VPX_FLASH_STORAGE_MODULE;
+                requirement = FindArea(craft);
+                if (requirement == null) return;
+                requirement.RequiredLevel = 2;
+                SetAllRequirementCounts(craft, 1);
             }),
 
-            new("5c052e6986f7746b207bc3c9", craft => // INFO_INTELLIGENCE_FOLDER
+            new(ItemTpl.INFO_INTELLIGENCE_FOLDER, craft =>
             {
-                var requirement = craft.Requirements?.FirstOrDefault(r => r.TemplateId == "60b0f6c058e0b0481a09ad11");
+                var requirement = FindItem(craft, ItemTpl.INFO_MILITARY_FLASH_DRIVE);
                 if (requirement == null) return;
                 requirement.Count = 1;
             }),
 
-            new("5c052fb986f7746b2101e909", craft => // BARTER_VIRTEX_PROGRAMMABLE_PROCESSOR
+            new(ItemTpl.BARTER_VPX_FLASH_STORAGE_MODULE, craft => SetAllRequirementCounts(craft, 2)),
+
+            new(ItemTpl.BARTER_VIRTEX_PROGRAMMABLE_PROCESSOR, craft =>
             {
-                var requirement = craft.Requirements?.FirstOrDefault(r => r.TemplateId == "5bc9bc53d4351e00367fbcee");
+                var requirement = FindItem(craft, ItemTpl.BARTER_MILITARY_CIRCUIT_BOARD);
                 if (requirement == null) return;
                 requirement.Count = 1;
             }),
 
-            new("57347c93245977448d35f6e4", craft => // BARTER_GRAPHICS_CARD
+            new(ItemTpl.BARTER_GRAPHICS_CARD, craft =>
             {
-                var req = craft.Requirements?.FirstOrDefault(r => r.TemplateId == "5c052fb986f7746b2101e909");
-                if (req == null) return;
-                req.Count = 1;
-                req.TemplateId = "5c052f6886f7746b1e3db148";
-                req = craft.Requirements?.FirstOrDefault(r => r.TemplateId == "5c052f6886f7746b1e3db148");
-                if (req == null) return;
-                req.Count = 1;
-                req = craft.Requirements?.FirstOrDefault(r => r.TemplateId == "5c06779c86f77426e00dd782");
-                if (req == null) return;
-                req.Count = 1;
-            }),
-
-            new("590a358486f77429692b2790", craft => // BARTER_RECHARGEABLE_BATTERY
-            {
-                var requirement = craft.Requirements?.FirstOrDefault(r => r.TemplateId == "5733279d245977289b77ec24");
+                var requirement = FindItem(craft, ItemTpl.BARTER_VPX_FLASH_STORAGE_MODULE);
                 if (requirement == null) return;
-                requirement.TemplateId = "57347c1124597737fb1379e3";
-            }),
-
-            new("5d70e500a4b9364de70d38ce", craft => // BARTER_CAN_OF_THERMITE
-            {
-                var requirement = craft.Requirements?.FirstOrDefault(r => r.TemplateId == "5780d0532459777a5108b9a2");
+                requirement.Count = 1;
+                requirement.TemplateId = ItemTpl.BARTER_VIRTEX_PROGRAMMABLE_PROCESSOR;
+                requirement = FindItem(craft, ItemTpl.BARTER_PC_CPU);
                 if (requirement == null) return;
-                requirement.TemplateId = "5c0126f40db834002a125382";
+                requirement.Count = 1;
+                requirement = FindItem(craft, ItemTpl.BARTER_PRINTED_CIRCUIT_BOARD);
+                if (requirement == null) return;
+                requirement.Count = 1;
             }),
 
-            new("5e340dcdcb6d5863cc5e5efb", craft => // BARTER_GUNPOWDER_HAWK
-            {
-                var req = craft.Requirements?.FirstOrDefault(r => r.TemplateId == "590c311186f77424d1667482");
-                if (req == null) return;
-                req.TemplateId = "5d70e500a4b9364de70d38ce";
-                req = craft.Requirements?.FirstOrDefault(r => r.Type == "Area");
-                if (req == null) return;
-                req.RequiredLevel = 2;
-            }),
+            new(ItemTpl.BARTER_MILITARY_CIRCUIT_BOARD, craft => craft.Count = 2),
 
-            // Complex adjustments - loops
-            new("5d1b371186f774253763a656", craft => // BARTER_CORRUGATED_HOSE
+            new(ItemTpl.SPECIALSCOPE_FLIR_RS32_2259X_35MM_60HZ_THERMAL_RIFLESCOPE, craft =>
             {
-                if (craft.Requirements != null)
+                if (craft.Requirements == null) return;
+                foreach (var requirement in craft.Requirements)
                 {
-                    foreach (var requirement in craft.Requirements)
+                    if (requirement.Count.HasValue)
                     {
-                        if (requirement.Count.HasValue)
-                        {
-                            requirement.Count = 1;
-                        }
+                        requirement.Count = 1;
                     }
-                }
-                craft.Count = 1;
-            }),
-
-            new("5bc9bdb8d4351e003562b8a1", craft => // BARTER_LEDX_SKIN_TRANSILLUMINATOR
-            {
-                if (craft.Requirements != null)
-                {
-                    foreach (var requirement in craft.Requirements)
+                    if (requirement.TemplateId == ItemTpl.INFO_SAS_DRIVE)
                     {
-                        if (requirement.Count.HasValue)
-                        {
-                            requirement.Count = 1;
-                        }
+                        requirement.TemplateId = ItemTpl.SPECIALSCOPE_ARMASIGHT_VULCAN_MG_35X_BRAVO_NIGHT_VISION_SCOPE;
                     }
                 }
             }),
 
-            new("5c052fb986f7746b2101e909", craft => // BARTER_VPX_FLASH_STORAGE_MODULE
-            {
-                if (craft.Requirements != null)
-                {
-                    foreach (var requirement in craft.Requirements)
-                    {
-                        if (requirement.Count.HasValue)
-                        {
-                            requirement.Count = 2;
-                        }
-                    }
-                }
-            }),
-
-            new("590a3efd86f77437d351a25b", craft => // BARTER_GAS_ANALYZER
-            {
-                if (craft.Requirements != null)
-                {
-                    foreach (var requirement in craft.Requirements)
-                    {
-                        if (requirement.Count.HasValue)
-                        {
-                            requirement.Count = 1;
-                        }
-                    }
-                }
-            }),
-
-            new("5e340dcdcb6d5863cc5e5efb", craft => // GRENADE_VOG25_KHATTABKA_IMPROVISED_HAND
-            {
-                if (craft.Requirements != null)
-                {
-                    foreach (var requirement in craft.Requirements)
-                    {
-                        if (requirement.Count.HasValue)
-                        {
-                            requirement.Count = 2;
-                        }
-                    }
-                }
-            }),
-
-            new("5f2a9575926fd9352339381f", craft => // BARTER_BROKEN_LCD
-            {
-                craft.Count = 1;
-                if (craft.Requirements != null)
-                {
-                    foreach (var requirement in craft.Requirements)
-                    {
-                        if (requirement.Count.HasValue)
-                        {
-                            requirement.Count = 1;
-                        }
-                    }
-                }
-            }),
-
-            new("62178c4d4ecf221597654e3d", craft => // BARTER_OFZ_30X165MM_SHELL
-            {
-                if (craft.Requirements != null)
-                {
-                    foreach (var requirement in craft.Requirements)
-                    {
-                        if (requirement.Count.HasValue)
-                        {
-                            requirement.Count = 1;
-                        }
-                    }
-                }
-            }),
-
-            new("5e32f56fcb6d5863cc5e5ee4", craft => // GRENADE_RGD5_HAND
-            {
-                if (craft.Requirements != null)
-                {
-                    foreach (var requirement in craft.Requirements)
-                    {
-                        if (requirement.Count.HasValue)
-                        {
-                            requirement.Count = 1;
-                        }
-                    }
-                }
-            }),
-
-            new("5b0bfa0f5acfc432ff4dcbaf", craft => // GRENADE_ZARYA_STUN
-            {
-                if (craft.Requirements != null)
-                {
-                    foreach (var requirement in craft.Requirements)
-                    {
-                        if (requirement.Count.HasValue)
-                        {
-                            requirement.Count = 1;
-                        }
-                    }
-                }
-            }),
-
-            new("62a0a16d0b9d3c46de5b6e97", craft => // SPECIALSCOPE_FLIR_RS32_2259X_35MM_60HZ_THERMAL_RIFLESCOPE
-            {
-                if (craft.Requirements != null)
-                {
-                    foreach (var requirement in craft.Requirements)
-                    {
-                        if (requirement.Count.HasValue)
-                        {
-                            requirement.Count = 1;
-                        }
-                        if (requirement.TemplateId == "5a154d5cfcdbcb001a3b00da")
-                        {
-                            requirement.TemplateId = "558022b54bdc2dac148b458d";
-                        }
-                    }
-                }
-            }),
-
-            // Complex adjustments - complete requirement replacements
-            new("5c052f6886f7746b1e3db148", craft => // BARTER_UHF_RFID_READER
+            new(ItemTpl.BARTER_UHF_RFID_READER, craft =>
             {
                 craft.Requirements = new List<Requirement>
                 {
                     new() { AreaType = 11, RequiredLevel = 2, Type = "Area" },
-                    new() { TemplateId = "5c052e6986f7746b207bc3c9", Count = 1, IsFunctional = false, Type = "Item" },
-                    new() { TemplateId = "5c13cd2486f774072c757944", Count = 1, IsFunctional = false, Type = "Item" },
-                    new() { TemplateId = "59ccfdba86f7747f2109a587", Type = "Tool" },
-                    new() { TemplateId = "590c31c586f774245e3141b2", Type = "Tool" },
-                    new() { Type = "QuestComplete", QuestId = "63966fccac6f8f3c677b9d89" },
+                    new() { TemplateId = ItemTpl.BARTER_BROKEN_GPHONE_X_SMARTPHONE, Count = 1, IsFunctional = false, Type = "Item" },
+                    new() { TemplateId = ItemTpl.SPECITEM_SIGNAL_JAMMER, Count = 1, IsFunctional = false, Type = "Item" },
+                    new() { TemplateId = ItemTpl.BARTER_FLAT_SCREWDRIVER_LONG, Type = "Tool" },
+                    new() { TemplateId = ItemTpl.BARTER_FLAT_SCREWDRIVER, Type = "Tool" },
+                    new() { Type = "QuestComplete", QuestId = QuestTpl.SNATCH },
                 };
             }),
 
-            new("5c06779c86f77426e00dd782", craft => // BARTER_PRINTED_CIRCUIT_BOARD
+            new(ItemTpl.BARTER_GAS_ANALYZER, craft => SetAllRequirementCounts(craft, 1)),
+
+            new(ItemTpl.BARTER_GUNPOWDER_HAWK, craft =>
             {
-                craft.Count = 3;
-                var requirement = craft.Requirements?.FirstOrDefault(r => r.TemplateId == "590a3efd86f77437d351a25b");
+                var requirement = FindItem(craft, ItemTpl.BARTER_CLASSIC_MATCHES);
                 if (requirement == null) return;
-                requirement.TemplateId = "5d1b2fa286f77425227d1674";
+                requirement.TemplateId = ItemTpl.BARTER_CAN_OF_THERMITE;
+                requirement = FindArea(craft);
+                if (requirement == null) return;
+                requirement.RequiredLevel = 2;
             }),
 
-            new("5d1b2fa286f77425227d1674", craft => // BARTER_GEIGERMULLER_COUNTER
+            new(ItemTpl.BARTER_SPARK_PLUG, craft => craft.Count = 4),
+
+            // TS source notes "this will break" on this one
+            new(ItemTpl.BARTER_PRINTED_CIRCUIT_BOARD, craft =>
+            {
+                craft.Count = 3;
+                var requirement = FindItem(craft, ItemTpl.BARTER_GAS_ANALYZER);
+                if (requirement == null) return;
+                requirement.TemplateId = ItemTpl.BARTER_GEIGERMULLER_COUNTER;
+            }),
+
+            new(ItemTpl.BARTER_GEIGERMULLER_COUNTER, craft =>
             {
                 craft.Requirements = new List<Requirement>
                 {
                     new() { AreaType = 10, RequiredLevel = 1, Type = "Area" },
-                    new() { TemplateId = "590a3efd86f77437d351a25b", Count = 1, IsFunctional = false, IsEncoded = false, Type = "Item" },
-                    new() { TemplateId = "5d1b376e86f774252519444e", Type = "Tool" },
+                    new() { TemplateId = ItemTpl.BARTER_GAS_ANALYZER, Count = 1, IsFunctional = false, IsEncoded = false, Type = "Item" },
+                    new() { TemplateId = ItemTpl.BARTER_TOOLSET, Type = "Tool" },
                 };
             }),
 
-            new("5d1b2f3f86f774252167a52c", craft => // BARTER_GREENBAT_LITHIUM_BATTERY
+            new(ItemTpl.BARTER_GREENBAT_LITHIUM_BATTERY, craft =>
             {
                 craft.Count = 2;
                 craft.Requirements = new List<Requirement>
                 {
                     new() { AreaType = 10, RequiredLevel = 2, Type = "Area" },
-                    new() { TemplateId = "5733279d245977289b77ec24", Count = 1, IsFunctional = false, IsEncoded = false, Type = "Item" },
-                    new() { TemplateId = "5d1b33e486f7742523398394", Type = "Tool" },
+                    new() { TemplateId = ItemTpl.BARTER_PORTABLE_POWERBANK, Count = 1, IsFunctional = false, IsEncoded = false, Type = "Item" },
+                    new() { TemplateId = ItemTpl.BARTER_ROUND_PLIERS, Type = "Tool" },
                 };
             }),
 
-            new("5ede4739e0350d05467f73e8", craft => // AMMO_23X75_ZVEZDA
+            new(ItemTpl.GRENADE_VOG25_KHATTABKA_IMPROVISED_HAND, craft => SetAllRequirementCounts(craft, 2)),
+
+            new(ItemTpl.BARTER_BROKEN_LCD, craft =>
+            {
+                craft.Count = 1;
+                SetAllRequirementCounts(craft, 1);
+            }),
+
+            new(ItemTpl.AMMO_23X75_ZVEZDA, craft =>
             {
                 craft.Count = 20;
                 craft.Requirements = new List<Requirement>
                 {
                     new() { AreaType = 10, RequiredLevel = 2, Type = "Area" },
-                    new() { TemplateId = "5d6fc78386f77449d825f9dc", Count = 1, IsFunctional = false, IsEncoded = false, Type = "Item" },
-                    new() { TemplateId = "5ede47405b097655935d7d16", Count = 20, IsFunctional = false, IsEncoded = false, Type = "Item" },
-                    new() { TemplateId = "5b0bfa0f5acfc432ff4dcbaf", Count = 2, IsFunctional = false, IsEncoded = false, Type = "Item" },
-                    new() { TemplateId = "5d1b376e86f774252519444e", Type = "Tool" },
-                    new() { TemplateId = "5d1b309586f77425227d1676", Type = "Tool" },
+                    new() { TemplateId = ItemTpl.BARTER_GUNPOWDER_EAGLE, Count = 1, IsFunctional = false, IsEncoded = false, Type = "Item" },
+                    new() { TemplateId = ItemTpl.AMMO_23X75_SHRAP10, Count = 20, IsFunctional = false, IsEncoded = false, Type = "Item" },
+                    new() { TemplateId = ItemTpl.GRENADE_ZARYA_STUN, Count = 2, IsFunctional = false, IsEncoded = false, Type = "Item" },
+                    new() { TemplateId = ItemTpl.BARTER_TOOLSET, Type = "Tool" },
+                    new() { TemplateId = ItemTpl.MULTITOOLS_LEATHERMAN_MULTITOOL, Type = "Tool" },
                 };
             }),
 
-            new("5e81c3cbac2bb513793cdc75", craft => // AMMO_45ACP_AP
+            new(ItemTpl.BARTER_RECHARGEABLE_BATTERY, craft =>
+            {
+                var requirement = FindItem(craft, ItemTpl.BARTER_PORTABLE_POWERBANK);
+                if (requirement == null) return;
+                requirement.TemplateId = ItemTpl.BARTER_ELECTRIC_DRILL;
+            }),
+
+            new(ItemTpl.BARTER_CAN_OF_THERMITE, craft =>
+            {
+                var requirement = FindItem(craft, ItemTpl.KEY_DORM_ROOM_308);
+                if (requirement == null) return;
+                requirement.TemplateId = ItemTpl.KNIFE_BARS_A2607_DAMASCUS;
+            }),
+
+            new(ItemTpl.AMMO_45ACP_AP, craft =>
             {
                 craft.Count = 120;
                 craft.Requirements = new List<Requirement>
                 {
                     new() { AreaType = 10, RequiredLevel = 2, Type = "Area" },
-                    new() { TemplateId = "5e81c519cb2b95385c177551", Count = 120, IsFunctional = false, IsEncoded = false, Type = "Item" },
-                    new() { TemplateId = "5d1b309586f77425227d1676", Type = "Tool" },
-                    new() { TemplateId = "5d6fc78386f77449d825f9dc", Count = 1, IsFunctional = false, IsEncoded = false, Type = "Item" },
-                    new() { TemplateId = "590a373286f774287540368b", Count = 1, IsFunctional = false, IsEncoded = false, Type = "Item" },
-                    new() { TemplateId = "5d1b327086f7742525194449", Type = "Tool" },
+                    new() { TemplateId = ItemTpl.AMMO_45ACP_LASERMATCH, Count = 120, IsFunctional = false, IsEncoded = false, Type = "Item" },
+                    new() { TemplateId = ItemTpl.MULTITOOLS_LEATHERMAN_MULTITOOL, Type = "Tool" },
+                    new() { TemplateId = ItemTpl.BARTER_GUNPOWDER_EAGLE, Count = 1, IsFunctional = false, IsEncoded = false, Type = "Item" },
+                    new() { TemplateId = ItemTpl.BARTER_PACK_OF_NAILS, Count = 1, IsFunctional = false, IsEncoded = false, Type = "Item" },
+                    new() { TemplateId = ItemTpl.BARTER_SET_OF_FILES_MASTER, Type = "Tool" },
                 };
             }),
 
-            // COMMENTED OUT: AMMO_57X28_SS190 (lines 495-535 in TS)
-            /*
-            new("5cc80f53e4a949000e1ea4f8", craft =>
+            // Disabled in the TS source as well
+            // new(ItemTpl.AMMO_57X28_SS190, craft =>
+            // {
+            //     craft.Requirements = new List<Requirement>
+            //     {
+            //         new() { AreaType = 10, RequiredLevel = 2, Type = "Area" },
+            //         new() { TemplateId = ItemTpl.BARTER_HAND_DRILL, Type = "Tool" },
+            //         new() { TemplateId = ItemTpl.BARTER_PLIERS_ELITE, Type = "Tool" },
+            //         new() { TemplateId = ItemTpl.AMMO_57X28_SS197SR, Count = 180, IsFunctional = false, IsEncoded = false, Type = "Item" },
+            //         new() { TemplateId = ItemTpl.BARTER_GUNPOWDER_HAWK, Count = 1, IsFunctional = false, IsEncoded = false, Type = "Item" },
+            //         new() { TemplateId = ItemTpl.BARTER_PACK_OF_NAILS, Count = 2, IsFunctional = false, IsEncoded = false, Type = "Item" },
+            //     };
+            // }),
+
+            new(ItemTpl.AMMO_556X45_SOST, craft =>
             {
                 craft.Requirements = new List<Requirement>
                 {
                     new() { AreaType = 10, RequiredLevel = 2, Type = "Area" },
-                    new() { TemplateId = "5d1b2f3f86f774252167a52c", Type = "Tool" },
-                    new() { TemplateId = "5d1b33a686f7742523398398", Type = "Tool" },
-                    new() { TemplateId = "5cc80f79e4a949033c7343b2", Count = 180, IsFunctional = false, IsEncoded = false, Type = "Item" },
-                    new() { TemplateId = "5e340dcdcb6d5863cc5e5efb", Count = 1, IsFunctional = false, IsEncoded = false, Type = "Item" },
-                    new() { TemplateId = "590a373286f774287540368b", Count = 2, IsFunctional = false, IsEncoded = false, Type = "Item" },
-                };
-            }),
-            */
-
-            new("59e690b686f7746c9f75e848", craft => // AMMO_556X45_SOST
-            {
-                craft.Requirements = new List<Requirement>
-                {
-                    new() { AreaType = 10, RequiredLevel = 2, Type = "Area" },
-                    new() { TemplateId = "59e6906286f7746c9f75e847", Count = 150, IsFunctional = false, IsEncoded = false, Type = "Item" },
-                    new() { TemplateId = "5d6fc78386f77449d825f9dc", Count = 1, IsFunctional = false, IsEncoded = false, Type = "Item" },
-                    new() { TemplateId = "5d1b33a686f7742523398398", Type = "Tool" },
+                    new() { TemplateId = ItemTpl.AMMO_556X45_HP, Count = 150, IsFunctional = false, IsEncoded = false, Type = "Item" },
+                    new() { TemplateId = ItemTpl.BARTER_GUNPOWDER_EAGLE, Count = 1, IsFunctional = false, IsEncoded = false, Type = "Item" },
+                    new() { TemplateId = ItemTpl.BARTER_PLIERS_ELITE, Type = "Tool" },
                 };
             }),
 
-            new("573719df2459775a626ccbc2", craft => // AMMO_9X18PM_PSTM
+            new(ItemTpl.AMMO_9X18PM_PSTM, craft =>
             {
-                craft.Requirements?.Add(new Requirement
+                craft.Requirements ??= new List<Requirement>();
+                craft.Requirements.Add(new Requirement
                 {
-                    TemplateId = "573719762459775a626ccbc1",
+                    TemplateId = ItemTpl.AMMO_9X18PM_PST,
                     Count = 140,
                     IsFunctional = false,
                     IsEncoded = false,
@@ -423,38 +324,418 @@ public static class CraftingData
                 });
             }),
 
-            new("5d6e68a8a4b9360b6c0d54e2", craft => // AMMO_12G_AP20
+            new(ItemTpl.AMMO_12G_AP20, craft =>
             {
                 craft.Requirements = new List<Requirement>
                 {
                     new() { AreaType = 10, RequiredLevel = 2, Type = "Area" },
-                    new() { TemplateId = "5d6e6806a4b936088465b17e", Count = 80, IsFunctional = false, IsEncoded = false, Type = "Item" },
-                    new() { TemplateId = "5c925fa22e221601da359b7b", Count = 80, IsFunctional = false, IsEncoded = false, Type = "Item" },
-                    new() { TemplateId = "5d1b36a186f7742523398433", Type = "Tool" },
-                    new() { TemplateId = "59ccfdba86f7747f2109a587", Type = "Tool" },
-                    new() { Type = "QuestComplete", QuestId = "6179ad0a6e9dd54ac275e3f2" },
+                    new() { TemplateId = ItemTpl.AMMO_12G_MAGNUM, Count = 80, IsFunctional = false, IsEncoded = false, Type = "Item" },
+                    new() { TemplateId = ItemTpl.AMMO_9X19_AP_63, Count = 80, IsFunctional = false, IsEncoded = false, Type = "Item" },
+                    new() { TemplateId = ItemTpl.BARTER_NIPPERS, Type = "Tool" },
+                    new() { TemplateId = ItemTpl.BARTER_FLAT_SCREWDRIVER_LONG, Type = "Tool" },
+                    new() { Type = "QuestComplete", QuestId = QuestTpl.THE_HUNTSMAN_PATH_OUTCASTS },
                 };
             }),
 
-            // COMMENTED OUT: AMMO_366TKM_APM (lines 616-649 in TS)
-            /*
-            new("5f0596629e22f464da6bbdd9", craft =>
-            {
-                craft.Requirements = new List<Requirement>
-                {
-                    new() { AreaType = 10, RequiredLevel = 2, Type = "Area" },
-                    new() { TemplateId = "57a0dfb82459774d3078b56c", Count = 100, IsFunctional = false, IsEncoded = false, Type = "Item" },
-                    new() { TemplateId = "59e0d99486f7744a32234762", Count = 100, IsFunctional = false, IsEncoded = false, Type = "Item" },
-                    new() { TemplateId = "5d1b371186f774253763a656", Type = "Tool" },
-                    new() { Type = "QuestComplete", QuestId = "5bc47dbf86f7741ee74e93b9" },
-                };
-            }),
-            */
+            // Disabled in the TS source as well
+            // new(ItemTpl.AMMO_366TKM_APM, craft =>
+            // {
+            //     craft.Requirements = new List<Requirement>
+            //     {
+            //         new() { AreaType = 10, RequiredLevel = 2, Type = "Area" },
+            //         new() { TemplateId = ItemTpl.AMMO_9X39_SPP, Count = 100, IsFunctional = false, IsEncoded = false, Type = "Item" },
+            //         new() { TemplateId = ItemTpl.AMMO_762X39_HP, Count = 100, IsFunctional = false, IsEncoded = false, Type = "Item" },
+            //         new() { TemplateId = ItemTpl.BARTER_PLIERS, Type = "Tool" },
+            //         new() { Type = "QuestComplete", QuestId = QuestTpl.THE_TARKOV_SHOOTER_PART_3 },
+            //     };
+            // }),
+
+            new(ItemTpl.BARTER_OFZ_30X165MM_SHELL, craft => SetAllRequirementCounts(craft, 1)),
+            new(ItemTpl.GRENADE_RGD5_HAND, craft => SetAllRequirementCounts(craft, 1)),
+            new(ItemTpl.GRENADE_ZARYA_STUN, craft => SetAllRequirementCounts(craft, 1)),
+            new(ItemTpl.AMMO_12G_PIRANHA, craft => craft.Count = 150),
+            new(ItemTpl.AMMO_545X39_BP, craft => craft.Count = 180),
+            new(ItemTpl.AMMO_556X45_M855A1, craft => craft.Count = 180),
         };
     }
 
     public static class NewRecipes
     {
+        #region Container Recipes
+
+        private static readonly HideoutProduction Alpha = new()
+        {
+            Id = "63da4dbee8fa73e22500001a",
+            AreaType = HideoutAreas.Workbench,
+            Requirements = new List<Requirement>
+            {
+                new() { AreaType = 10, RequiredLevel = 1, Type = "Area" },
+                new() { TemplateId = ItemTpl.LOCKABLECONTAINER_PISTOL_CASE, Count = 2, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.CONTAINER_SIMPLE_WALLET, Count = 2, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.CONTAINER_DOGTAG_CASE, Count = 2, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.INFO_SECURE_FLASH_DRIVE, Count = 2, IsFunctional = false, Type = "Item" },
+            },
+            ProductionTime = 5600,
+            EndProduct = ItemTpl.SECURE_CONTAINER_ALPHA,
+            IsEncoded = false,
+            Locked = false,
+            NeedFuelForAllProductionTime = true,
+            Continuous = false,
+            Count = 1,
+            ProductionLimitCount = 0,
+            IsCodeProduction = false
+        };
+
+        private static readonly HideoutProduction Beta = new()
+        {
+            Id = "63da4dbee8fa73e22500001b",
+            AreaType = HideoutAreas.Workbench,
+            Requirements = new List<Requirement>
+            {
+                new() { AreaType = 10, RequiredLevel = 1, Type = "Area" },
+                new() { TemplateId = ItemTpl.SECURE_CONTAINER_ALPHA, Count = 2, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.CONTAINER_AMMUNITION_CASE, Count = 2, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.CONTAINER_DOCUMENTS_CASE, Count = 2, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.INFO_MILITARY_FLASH_DRIVE, Count = 2, IsFunctional = false, Type = "Item" },
+            },
+            ProductionTime = 10800,
+            EndProduct = ItemTpl.SECURE_CONTAINER_BETA,
+            IsEncoded = false,
+            Locked = false,
+            NeedFuelForAllProductionTime = true,
+            Continuous = false,
+            Count = 1,
+            ProductionLimitCount = 0,
+            IsCodeProduction = false
+        };
+
+        private static readonly HideoutProduction Epsilon = new()
+        {
+            Id = "63da4dbee8fa73e22500001c",
+            AreaType = HideoutAreas.Workbench,
+            Requirements = new List<Requirement>
+            {
+                new() { AreaType = 10, RequiredLevel = 2, Type = "Area" },
+                new() { TemplateId = ItemTpl.SECURE_CONTAINER_BETA, Count = 2, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.CONTAINER_MAGAZINE_CASE, Count = 2, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.CONTAINER_KEY_TOOL, Count = 2, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.CONTAINER_KEYCARD_HOLDER_CASE, Count = 2, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.INFO_SECURE_MAGNETIC_TAPE_CASSETTE, Count = 2, IsFunctional = false, Type = "Item" },
+            },
+            ProductionTime = 35000,
+            EndProduct = ItemTpl.SECURE_CONTAINER_EPSILON,
+            IsEncoded = false,
+            Locked = false,
+            NeedFuelForAllProductionTime = true,
+            Continuous = false,
+            Count = 1,
+            ProductionLimitCount = 0,
+            IsCodeProduction = false
+        };
+
+        private static readonly HideoutProduction Gamma = new()
+        {
+            Id = "63da4dbee8fa73e22500001d",
+            AreaType = HideoutAreas.Workbench,
+            Requirements = new List<Requirement>
+            {
+                new() { AreaType = 10, RequiredLevel = 3, Type = "Area" },
+                new() { TemplateId = ItemTpl.SECURE_CONTAINER_EPSILON, Count = 2, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.CONTAINER_GRENADE_CASE, Count = 2, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.CONTAINER_MONEY_CASE, Count = 2, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.CONTAINER_SICC, Count = 2, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.CONTAINER_INJECTOR_CASE, Count = 2, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.BARTER_MICROCONTROLLER_BOARD, Count = 2, IsFunctional = false, Type = "Item" },
+            },
+            ProductionTime = 61200,
+            EndProduct = ItemTpl.SECURE_CONTAINER_GAMMA,
+            IsEncoded = false,
+            Locked = false,
+            NeedFuelForAllProductionTime = true,
+            Continuous = false,
+            Count = 1,
+            ProductionLimitCount = 0,
+            IsCodeProduction = false
+        };
+
+        #endregion
+
+        #region Additional Recipes
+
+        private static readonly HideoutProduction Ophthalmoscope = new()
+        {
+            Id = "63da4dbee8fa73e225000001",
+            AreaType = HideoutAreas.MedStation,
+            Requirements = new List<Requirement>
+            {
+                new() { AreaType = 7, RequiredLevel = 3, Type = "Area" },
+                new() { TemplateId = ItemTpl.BARTER_GREENBAT_LITHIUM_BATTERY, Count = 1, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.BARTER_MEDICAL_TOOLS, Count = 2, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.FLASHLIGHT_ULTRAFIRE_WF501B, Count = 1, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.SPECITEM_WIFI_CAMERA, Count = 1, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.BARTER_DUCT_TAPE, Count = 1, IsFunctional = false, Type = "Item" },
+            },
+            ProductionTime = 105,
+            EndProduct = ItemTpl.BARTER_OPHTHALMOSCOPE,
+            IsEncoded = false,
+            Locked = false,
+            NeedFuelForAllProductionTime = false,
+            Continuous = false,
+            Count = 1,
+            ProductionLimitCount = 0,
+            IsCodeProduction = false
+        };
+
+        private static readonly HideoutProduction Zagustin = new()
+        {
+            Id = "63da4dbee8fa73e225000002",
+            AreaType = HideoutAreas.MedStation,
+            Requirements = new List<Requirement>
+            {
+                new() { AreaType = 7, RequiredLevel = 3, Type = "Area" },
+                new() { TemplateId = ItemTpl.STIM_PROPITAL_REGENERATIVE_STIMULANT_INJECTOR, Count = 2, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.MEDICAL_CALOKB_HEMOSTATIC_APPLICATOR, Count = 1, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.STIM_AHF1M_STIMULANT_INJECTOR, Count = 1, IsFunctional = false, Type = "Item" },
+            },
+            ProductionTime = 105,
+            EndProduct = ItemTpl.STIM_ZAGUSTIN_HEMOSTATIC_DRUG_INJECTOR,
+            IsEncoded = false,
+            Locked = false,
+            NeedFuelForAllProductionTime = false,
+            Continuous = false,
+            Count = 3,
+            ProductionLimitCount = 0,
+            IsCodeProduction = false
+        };
+
+        private static readonly HideoutProduction Obdolbos = new()
+        {
+            Id = "63da4dbee8fa73e225000003",
+            AreaType = HideoutAreas.MedStation,
+            Requirements = new List<Requirement>
+            {
+                new() { AreaType = 7, RequiredLevel = 3, Type = "Area" },
+                new() { TemplateId = ItemTpl.STIM_SJ1_TGLABS_COMBAT_STIMULANT_INJECTOR, Count = 1, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.BARTER_FUEL_CONDITIONER, Count = 1, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.BARTER_SMOKED_CHIMNEY_DRAIN_CLEANER, Count = 1, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.DRINK_BOTTLE_OF_PEVKO_LIGHT_BEER, Count = 1, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.DRINK_BOTTLE_OF_TARKOVSKAYA_VODKA, Count = 1, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.DRINK_BOTTLE_OF_DAN_JACKIEL_WHISKEY, Count = 1, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.DRINK_BOTTLE_OF_FIERCE_HATCHLING_MOONSHINE, Count = 1, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.BARTER_FP100_FILTER_ABSORBER, Type = "Tool" },
+            },
+            ProductionTime = 564,
+            EndProduct = ItemTpl.STIM_OBDOLBOS_COCKTAIL_INJECTOR,
+            IsEncoded = false,
+            Locked = false,
+            NeedFuelForAllProductionTime = false,
+            Continuous = false,
+            Count = 8,
+            ProductionLimitCount = 0,
+            IsCodeProduction = false
+        };
+
+        private static readonly HideoutProduction CALOK = new()
+        {
+            Id = "63da4dbee8fa73e225000004",
+            AreaType = HideoutAreas.MedStation,
+            Requirements = new List<Requirement>
+            {
+                new() { AreaType = 7, RequiredLevel = 2, Type = "Area" },
+                new() { TemplateId = ItemTpl.BARTER_PACK_OF_SODIUM_BICARBONATE, Count = 1, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.DRUGS_VASELINE_BALM, Count = 1, IsFunctional = false, Type = "Item" },
+            },
+            ProductionTime = 48,
+            EndProduct = ItemTpl.MEDICAL_CALOKB_HEMOSTATIC_APPLICATOR,
+            IsEncoded = false,
+            Locked = false,
+            NeedFuelForAllProductionTime = false,
+            Continuous = false,
+            Count = 2,
+            ProductionLimitCount = 0,
+            IsCodeProduction = false
+        };
+
+        private static readonly HideoutProduction Adrenaline = new()
+        {
+            Id = "63da4dbee8fa73e225000005",
+            AreaType = HideoutAreas.MedStation,
+            Requirements = new List<Requirement>
+            {
+                new() { AreaType = 7, RequiredLevel = 2, Type = "Area" },
+                new() { TemplateId = ItemTpl.DRINK_CAN_OF_HOT_ROD_ENERGY, Count = 3, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.MEDKIT_AI2, Count = 1, IsFunctional = false, Type = "Item" },
+            },
+            ProductionTime = 23,
+            EndProduct = ItemTpl.STIM_ADRENALINE_INJECTOR,
+            IsEncoded = false,
+            Locked = false,
+            NeedFuelForAllProductionTime = false,
+            Continuous = false,
+            Count = 1,
+            ProductionLimitCount = 0,
+            IsCodeProduction = false
+        };
+
+        private static readonly HideoutProduction ThreebTG = new()
+        {
+            Id = "63da4dbee8fa73e225000006",
+            AreaType = HideoutAreas.MedStation,
+            Requirements = new List<Requirement>
+            {
+                new() { AreaType = 7, RequiredLevel = 3, Type = "Area" },
+                new() { TemplateId = ItemTpl.STIM_ADRENALINE_INJECTOR, Count = 1, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.BARTER_BOTTLE_OF_HYDROGEN_PEROXIDE, Count = 1, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.FOOD_ALYONKA_CHOCOLATE_BAR, Count = 1, IsFunctional = false, Type = "Item" },
+            },
+            ProductionTime = 31,
+            EndProduct = ItemTpl.STIM_3BTG_STIMULANT_INJECTOR,
+            IsEncoded = false,
+            Locked = false,
+            NeedFuelForAllProductionTime = false,
+            Continuous = false,
+            Count = 2,
+            ProductionLimitCount = 0,
+            IsCodeProduction = false
+        };
+
+        private static readonly HideoutProduction AHF1 = new()
+        {
+            Id = "63da4dbee8fa73e225000007",
+            AreaType = HideoutAreas.MedStation,
+            Requirements = new List<Requirement>
+            {
+                new() { AreaType = 7, RequiredLevel = 2, Type = "Area" },
+                new() { TemplateId = ItemTpl.DRUGS_AUGMENTIN_ANTIBIOTIC_PILLS, Count = 1, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.DRUGS_MORPHINE_INJECTOR, Count = 1, IsFunctional = false, Type = "Item" },
+            },
+            ProductionTime = 47,
+            EndProduct = ItemTpl.STIM_AHF1M_STIMULANT_INJECTOR,
+            IsEncoded = false,
+            Locked = false,
+            NeedFuelForAllProductionTime = false,
+            Continuous = false,
+            Count = 1,
+            ProductionLimitCount = 0,
+            IsCodeProduction = false
+        };
+
+        private static readonly HideoutProduction OLOLO = new()
+        {
+            Id = "63da4dbee8fa73e225000008",
+            AreaType = HideoutAreas.Kitchen,
+            Requirements = new List<Requirement>
+            {
+                new() { AreaType = 8, RequiredLevel = 3, Type = "Area" },
+                new() { TemplateId = ItemTpl.DRINK_PACK_OF_GRAND_JUICE, Count = 1, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.DRINK_PACK_OF_VITA_JUICE, Count = 1, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.DRINK_PACK_OF_APPLE_JUICE, Count = 1, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.DRINK_CAN_OF_ICE_GREEN_TEA, Count = 1, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.DRINK_PACK_OF_RUSSIAN_ARMY_PINEAPPLE_JUICE, Count = 1, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.DRUGS_ANALGIN_PAINKILLERS, Count = 1, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.BARTER_WATER_FILTER, Type = "Tool" },
+                new() { TemplateId = ItemTpl.BARTER_ANTIQUE_TEAPOT, Type = "Tool" },
+            },
+            ProductionTime = 71,
+            EndProduct = ItemTpl.BARTER_BOTTLE_OF_OLOLO_MULTIVITAMINS,
+            IsEncoded = false,
+            Locked = false,
+            NeedFuelForAllProductionTime = false,
+            Continuous = false,
+            Count = 3,
+            ProductionLimitCount = 0,
+            IsCodeProduction = false
+        };
+
+        private static readonly HideoutProduction L1 = new()
+        {
+            Id = "63da4dbee8fa73e225000009",
+            AreaType = HideoutAreas.MedStation,
+            Requirements = new List<Requirement>
+            {
+                new() { AreaType = 7, RequiredLevel = 3, Type = "Area" },
+                new() { TemplateId = ItemTpl.STIM_ADRENALINE_INJECTOR, Count = 1, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.STIM_SJ6_TGLABS_COMBAT_STIMULANT_INJECTOR, Count = 1, IsFunctional = false, Type = "Item" },
+            },
+            ProductionTime = 71,
+            EndProduct = ItemTpl.STIM_L1_NOREPINEPHRINE_INJECTOR,
+            IsEncoded = false,
+            Locked = false,
+            NeedFuelForAllProductionTime = false,
+            Continuous = false,
+            Count = 1,
+            ProductionLimitCount = 0,
+            IsCodeProduction = false
+        };
+
+        private static readonly HideoutProduction Trimadol = new()
+        {
+            Id = "63da4dbee8fa73e225000011",
+            AreaType = HideoutAreas.MedStation,
+            Requirements = new List<Requirement>
+            {
+                new() { AreaType = 7, RequiredLevel = 3, Type = "Area" },
+                new() { TemplateId = ItemTpl.STIM_3BTG_STIMULANT_INJECTOR, Count = 1, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.STIM_L1_NOREPINEPHRINE_INJECTOR, Count = 1, IsFunctional = false, Type = "Item" },
+            },
+            ProductionTime = 52,
+            EndProduct = ItemTpl.STIM_TRIMADOL_STIMULANT_INJECTOR,
+            IsEncoded = false,
+            Locked = false,
+            NeedFuelForAllProductionTime = false,
+            Continuous = false,
+            Count = 2,
+            ProductionLimitCount = 0,
+            IsCodeProduction = false
+        };
+
+        private static readonly HideoutProduction Meldonin = new()
+        {
+            Id = "63da4dbee8fa73e225000012",
+            AreaType = HideoutAreas.MedStation,
+            Requirements = new List<Requirement>
+            {
+                new() { AreaType = 7, RequiredLevel = 3, Type = "Area" },
+                new() { TemplateId = ItemTpl.STIM_L1_NOREPINEPHRINE_INJECTOR, Count = 1, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.STIM_MULE_STIMULANT_INJECTOR, Count = 1, IsFunctional = false, Type = "Item" },
+            },
+            ProductionTime = 39,
+            EndProduct = ItemTpl.STIM_MELDONIN_INJECTOR,
+            IsEncoded = false,
+            Locked = false,
+            NeedFuelForAllProductionTime = false,
+            Continuous = false,
+            Count = 2,
+            ProductionLimitCount = 0,
+            IsCodeProduction = false
+        };
+
+        private static readonly HideoutProduction Perfotran = new()
+        {
+            Id = "63da4dbee8fa73e225000014",
+            AreaType = HideoutAreas.MedStation,
+            Requirements = new List<Requirement>
+            {
+                new() { AreaType = 7, RequiredLevel = 3, Type = "Area" },
+                new() { TemplateId = ItemTpl.STIM_ZAGUSTIN_HEMOSTATIC_DRUG_INJECTOR, Count = 1, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.STIM_XTG12_ANTIDOTE_INJECTOR, Count = 1, IsFunctional = false, Type = "Item" },
+                new() { TemplateId = ItemTpl.STIM_PROPITAL_REGENERATIVE_STIMULANT_INJECTOR, Count = 1, IsFunctional = false, Type = "Item" },
+            },
+            ProductionTime = 45,
+            EndProduct = ItemTpl.STIM_PERFOTORAN_BLUE_BLOOD_STIMULANT_INJECTOR,
+            Continuous = false,
+            IsEncoded = false,
+            Locked = false,
+            NeedFuelForAllProductionTime = false,
+            Count = 2,
+            ProductionLimitCount = 0,
+            IsCodeProduction = false
+        };
+
+        #endregion
+
+        // Declared after the recipe fields: static initialisers run in textual order,
+        // so listing them first would populate this with nulls.
         public static readonly List<HideoutProduction> All = new()
         {
             // Container progression recipes (alpha -> beta -> epsilon -> gamma)
@@ -477,378 +758,5 @@ public static class CraftingData
             Trimadol,
             Meldonin,
         };
-
-        #region Container Recipes
-
-        private static readonly HideoutProduction Alpha = new()
-        {
-            Id = "63da4dbee8fa73e22500001a",
-            AreaType = HideoutAreas.Workbench,
-            Requirements = new List<Requirement>
-            {
-                new() { AreaType = 10, RequiredLevel = 1, Type = "Area" },
-                new() { TemplateId = "567143bf4bdc2d1a0f8b4567", Count = 2, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "5783c43d2459774bbe137486", Count = 2, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "5c093e3486f77430cb02e593", Count = 2, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "590c621186f774138d11ea29", Count = 2, IsFunctional = false, Type = "Item" },
-            },
-            ProductionTime = 5600,
-            EndProduct = "544a11ac4bdc2d470e8b456a",
-            IsEncoded = false,
-            Locked = false,
-            NeedFuelForAllProductionTime = true,
-            Continuous = false,
-            Count = 1,
-            ProductionLimitCount = 0,
-            IsCodeProduction = false
-        };
-
-        private static readonly HideoutProduction Beta = new()
-        {
-            Id = "63da4dbee8fa73e22500001b",
-            AreaType = HideoutAreas.Workbench,
-            Requirements = new List<Requirement>
-            {
-                new() { AreaType = 10, RequiredLevel = 1, Type = "Area" },
-                new() { TemplateId = "544a11ac4bdc2d470e8b456a", Count = 2, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "5aafbde786f774389d0cbc0f", Count = 2, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "590c60fc86f77412b13fddcf", Count = 2, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "62a0a16d0b9d3c46de5b6e97", Count = 2, IsFunctional = false, Type = "Item" },
-            },
-            ProductionTime = 10800,
-            EndProduct = "5857a8b324597729ab0a0e7d",
-            IsEncoded = false,
-            Locked = false,
-            NeedFuelForAllProductionTime = true,
-            Continuous = false,
-            Count = 1,
-            ProductionLimitCount = 0,
-            IsCodeProduction = false
-        };
-
-        private static readonly HideoutProduction Epsilon = new()
-        {
-            Id = "63da4dbee8fa73e22500001c",
-            AreaType = HideoutAreas.Workbench,
-            Requirements = new List<Requirement>
-            {
-                new() { AreaType = 10, RequiredLevel = 2, Type = "Area" },
-                new() { TemplateId = "5857a8b324597729ab0a0e7d", Count = 2, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "5c127c4486f7745625356c13", Count = 2, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "59fafd4b86f7745ca07e1232", Count = 2, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "619cbf9e0a7c3a1a2731940a", Count = 2, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "61bf7c024770ee6f9c6b8b53", Count = 2, IsFunctional = false, Type = "Item" },
-            },
-            ProductionTime = 35000,
-            EndProduct = "59db794186f77448bc595262",
-            IsEncoded = false,
-            Locked = false,
-            NeedFuelForAllProductionTime = true,
-            Continuous = false,
-            Count = 1,
-            ProductionLimitCount = 0,
-            IsCodeProduction = false
-        };
-
-        private static readonly HideoutProduction Gamma = new()
-        {
-            Id = "63da4dbee8fa73e22500001d",
-            AreaType = HideoutAreas.Workbench,
-            Requirements = new List<Requirement>
-            {
-                new() { AreaType = 10, RequiredLevel = 3, Type = "Area" },
-                new() { TemplateId = "59db794186f77448bc595262", Count = 2, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "5e2af55f86f7746d4159f07c", Count = 2, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "59fb016586f7746d0d4b423a", Count = 2, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "5d235bb686f77443f4331278", Count = 2, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "619cbf7d23893217ec30b689", Count = 2, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "6389c7750ef44505c87f5996", Count = 2, IsFunctional = false, Type = "Item" },
-            },
-            ProductionTime = 61200,
-            EndProduct = "5857a8bc2459772bad15db29",
-            IsEncoded = false,
-            Locked = false,
-            NeedFuelForAllProductionTime = true,
-            Continuous = false,
-            Count = 1,
-            ProductionLimitCount = 0,
-            IsCodeProduction = false
-        };
-
-        #endregion
-
-        #region Additional Recipes
-
-        private static readonly HideoutProduction Ophthalmoscope = new()
-        {
-            Id = "63da4dbee8fa73e225000001",
-            AreaType = HideoutAreas.MedStation,
-            Requirements = new List<Requirement>
-            {
-                new() { AreaType = 7, RequiredLevel = 3, Type = "Area" },
-                new() { TemplateId = "5e2aedd986f7746d404f3aa4", Count = 1, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "619cc01e0a7c3a1a2731940c", Count = 2, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "57d17c5e2459775a5c57d17d", Count = 1, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "5b4391a586f7745321235ab2", Count = 1, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "57347c1124597737fb1379e3", Count = 1, IsFunctional = false, Type = "Item" },
-            },
-            ProductionTime = 105,
-            EndProduct = "5af0534a86f7743b6f354284",
-            IsEncoded = false,
-            Locked = false,
-            NeedFuelForAllProductionTime = false,
-            Continuous = false,
-            Count = 1,
-            ProductionLimitCount = 0,
-            IsCodeProduction = false
-        };
-
-        private static readonly HideoutProduction Zagustin = new()
-        {
-            Id = "63da4dbee8fa73e225000002",
-            AreaType = HideoutAreas.MedStation,
-            Requirements = new List<Requirement>
-            {
-                new() { AreaType = 7, RequiredLevel = 3, Type = "Area" },
-                new() { TemplateId = "5c0e530286f7747fa1419862", Count = 2, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "5e8488fa988a8701445df1e4", Count = 1, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "5ed515f6915ec335206e4152", Count = 1, IsFunctional = false, Type = "Item" },
-            },
-            ProductionTime = 105,
-            EndProduct = "5c0e533786f7747fa23f4d47",
-            IsEncoded = false,
-            Locked = false,
-            NeedFuelForAllProductionTime = false,
-            Continuous = false,
-            Count = 3,
-            ProductionLimitCount = 0,
-            IsCodeProduction = false
-        };
-
-        private static readonly HideoutProduction Obdolbos = new()
-        {
-            Id = "63da4dbee8fa73e225000003",
-            AreaType = HideoutAreas.MedStation,
-            Requirements = new List<Requirement>
-            {
-                new() { AreaType = 7, RequiredLevel = 3, Type = "Area" },
-                new() { TemplateId = "5c0e531286f7747fa54205c2", Count = 1, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "5b43575a86f77424f443fe62", Count = 1, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "5e2af00086f7746d3f3c33f7", Count = 1, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "62a09f32621468534a797acb", Count = 1, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "5d40407c86f774318526545a", Count = 1, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "5d403f9186f7743cac3f229b", Count = 1, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "5d1b376e86f774252519444e", Count = 1, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "5d1b2f3f86f774252167a52c", Type = "Tool" },
-            },
-            ProductionTime = 564,
-            EndProduct = "5ed5166ad380ab312177c100",
-            IsEncoded = false,
-            Locked = false,
-            NeedFuelForAllProductionTime = false,
-            Continuous = false,
-            Count = 8,
-            ProductionLimitCount = 0,
-            IsCodeProduction = false
-        };
-
-        private static readonly HideoutProduction CALOK = new()
-        {
-            Id = "63da4dbee8fa73e225000004",
-            AreaType = HideoutAreas.MedStation,
-            Requirements = new List<Requirement>
-            {
-                new() { AreaType = 7, RequiredLevel = 2, Type = "Area" },
-                new() { TemplateId = "59e35abd86f7741778269d82", Count = 1, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "5755383e24597772cb798966", Count = 1, IsFunctional = false, Type = "Item" },
-            },
-            ProductionTime = 48,
-            EndProduct = "5e8488fa988a8701445df1e4",
-            IsEncoded = false,
-            Locked = false,
-            NeedFuelForAllProductionTime = false,
-            Continuous = false,
-            Count = 2,
-            ProductionLimitCount = 0,
-            IsCodeProduction = false
-        };
-
-        private static readonly HideoutProduction Adrenaline = new()
-        {
-            Id = "63da4dbee8fa73e225000005",
-            AreaType = HideoutAreas.MedStation,
-            Requirements = new List<Requirement>
-            {
-                new() { AreaType = 7, RequiredLevel = 2, Type = "Area" },
-                new() { TemplateId = "5751496424597720a27126da", Count = 3, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "5755356824597772cb798962", Count = 1, IsFunctional = false, Type = "Item" },
-            },
-            ProductionTime = 23,
-            EndProduct = "5c10c8fd86f7743d7d706df3",
-            IsEncoded = false,
-            Locked = false,
-            NeedFuelForAllProductionTime = false,
-            Continuous = false,
-            Count = 1,
-            ProductionLimitCount = 0,
-            IsCodeProduction = false
-        };
-
-        private static readonly HideoutProduction ThreebTG = new()
-        {
-            Id = "63da4dbee8fa73e225000006",
-            AreaType = HideoutAreas.MedStation,
-            Requirements = new List<Requirement>
-            {
-                new() { AreaType = 7, RequiredLevel = 3, Type = "Area" },
-                new() { TemplateId = "5c10c8fd86f7743d7d706df3", Count = 1, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "59e361e886f774176c10a2a5", Count = 1, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "57505f6224597709a92585a9", Count = 1, IsFunctional = false, Type = "Item" },
-            },
-            ProductionTime = 31,
-            EndProduct = "5ed515c8d380ab312177c0fa",
-            IsEncoded = false,
-            Locked = false,
-            NeedFuelForAllProductionTime = false,
-            Continuous = false,
-            Count = 2,
-            ProductionLimitCount = 0,
-            IsCodeProduction = false
-        };
-
-        private static readonly HideoutProduction AHF1 = new()
-        {
-            Id = "63da4dbee8fa73e225000007",
-            AreaType = HideoutAreas.MedStation,
-            Requirements = new List<Requirement>
-            {
-                new() { AreaType = 7, RequiredLevel = 2, Type = "Area" },
-                new() { TemplateId = "590c695186f7741e566b64a2", Count = 1, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "544fb3f34bdc2d03748b456a", Count = 1, IsFunctional = false, Type = "Item" },
-            },
-            ProductionTime = 47,
-            EndProduct = "5ed515f6915ec335206e4152",
-            IsEncoded = false,
-            Locked = false,
-            NeedFuelForAllProductionTime = false,
-            Continuous = false,
-            Count = 1,
-            ProductionLimitCount = 0,
-            IsCodeProduction = false
-        };
-
-        private static readonly HideoutProduction OLOLO = new()
-        {
-            Id = "63da4dbee8fa73e225000008",
-            AreaType = HideoutAreas.Kitchen,
-            Requirements = new List<Requirement>
-            {
-                new() { AreaType = 8, RequiredLevel = 3, Type = "Area" },
-                new() { TemplateId = "57513f9324597720a7128161", Count = 1, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "57513fcc24597720a31c09a6", Count = 1, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "57513f07245977207e26a311", Count = 1, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "575062b524597720a31c09a1", Count = 1, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "544fb62a4bdc2dfb738b4568", Count = 1, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "544fb37f4bdc2dee738b4567", Count = 1, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "5d1b385e86f774252167b98a", Type = "Tool" },
-                new() { TemplateId = "590de71386f774347051a052", Type = "Tool" },
-            },
-            ProductionTime = 71,
-            EndProduct = "62a0a043cf4a99369e2624a5",
-            IsEncoded = false,
-            Locked = false,
-            NeedFuelForAllProductionTime = false,
-            Continuous = false,
-            Count = 3,
-            ProductionLimitCount = 0,
-            IsCodeProduction = false
-        };
-
-        private static readonly HideoutProduction L1 = new()
-        {
-            Id = "63da4dbee8fa73e225000009",
-            AreaType = HideoutAreas.MedStation,
-            Requirements = new List<Requirement>
-            {
-                new() { AreaType = 7, RequiredLevel = 3, Type = "Area" },
-                new() { TemplateId = "5c10c8fd86f7743d7d706df3", Count = 1, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "5c0e531d86f7747fa23f4d42", Count = 1, IsFunctional = false, Type = "Item" },
-            },
-            ProductionTime = 71,
-            EndProduct = "5ed515e03a40a50460332579",
-            IsEncoded = false,
-            Locked = false,
-            NeedFuelForAllProductionTime = false,
-            Continuous = false,
-            Count = 1,
-            ProductionLimitCount = 0,
-            IsCodeProduction = false
-        };
-
-        private static readonly HideoutProduction Trimadol = new()
-        {
-            Id = "63da4dbee8fa73e225000011",
-            AreaType = HideoutAreas.MedStation,
-            Requirements = new List<Requirement>
-            {
-                new() { AreaType = 7, RequiredLevel = 3, Type = "Area" },
-                new() { TemplateId = "5ed515c8d380ab312177c0fa", Count = 1, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "5ed515e03a40a50460332579", Count = 1, IsFunctional = false, Type = "Item" },
-            },
-            ProductionTime = 52,
-            EndProduct = "637b620db7afa97bfc3d7009",
-            IsEncoded = false,
-            Locked = false,
-            NeedFuelForAllProductionTime = false,
-            Continuous = false,
-            Count = 2,
-            ProductionLimitCount = 0,
-            IsCodeProduction = false
-        };
-
-        private static readonly HideoutProduction Meldonin = new()
-        {
-            Id = "63da4dbee8fa73e225000012",
-            AreaType = HideoutAreas.MedStation,
-            Requirements = new List<Requirement>
-            {
-                new() { AreaType = 7, RequiredLevel = 3, Type = "Area" },
-                new() { TemplateId = "5ed515e03a40a50460332579", Count = 1, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "5ed51652f6c34d2cc26336a1", Count = 1, IsFunctional = false, Type = "Item" },
-            },
-            ProductionTime = 39,
-            EndProduct = "5ed5160a87bb8443d10680b5",
-            IsEncoded = false,
-            Locked = false,
-            NeedFuelForAllProductionTime = false,
-            Continuous = false,
-            Count = 2,
-            ProductionLimitCount = 0,
-            IsCodeProduction = false
-        };
-
-        private static readonly HideoutProduction Perfotran = new()
-        {
-            Id = "63da4dbee8fa73e225000014",
-            AreaType = HideoutAreas.MedStation,
-            Requirements = new List<Requirement>
-            {
-                new() { AreaType = 7, RequiredLevel = 3, Type = "Area" },
-                new() { TemplateId = "5c0e533786f7747fa23f4d47", Count = 1, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "5fca138c2a7b221b2852a5c6", Count = 1, IsFunctional = false, Type = "Item" },
-                new() { TemplateId = "5c0e530286f7747fa1419862", Count = 1, IsFunctional = false, Type = "Item" },
-            },
-            ProductionTime = 45,
-            EndProduct = "637b6251104668754b72f8f9",
-            Continuous = false,
-            IsEncoded = false,
-            Locked = false,
-            NeedFuelForAllProductionTime = false,
-            Count = 2,
-            ProductionLimitCount = 0,
-            IsCodeProduction = false
-        };
-
-        #endregion
     }
 }

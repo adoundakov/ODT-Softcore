@@ -53,10 +53,7 @@ public class PacifistFleaMarketChanger(
         var handbook = _templateTable.Handbook;
         var ragfairConfig = _ragfairConfig;
 
-        // Convert whitelist handbook IDs to MongoId for comparison
-        var whitelistedCategories = FleaMarketData.FleaListingsWhitelistHandbook
-            .Select(id => (MongoId)id)
-            .ToHashSet();
+        var whitelistedCategories = FleaMarketData.FleaListingsWhitelistHandbook;
 
         int blacklistedCount = 0;
 
@@ -87,10 +84,8 @@ public class PacifistFleaMarketChanger(
         var prices = _templateTable.Prices;
         var ragfairConfig = _ragfairConfig;
 
-        foreach (var itemIdStr in FleaMarketData.Whitelist)
+        foreach (var itemId in FleaMarketData.Whitelist)
         {
-            var itemId = (MongoId)itemIdStr;
-
             // Remove from blacklist
             ragfairConfig.Dynamic.Blacklist.Custom.Remove(itemId);
 
@@ -119,10 +114,8 @@ public class PacifistFleaMarketChanger(
         var prices = _templateTable.Prices;
         var ragfairConfig = _ragfairConfig;
 
-        foreach (var keyIdStr in KeysData.QuestKeys)
+        foreach (var keyId in KeysData.QuestKeys)
         {
-            var keyId = (MongoId)keyIdStr;
-
             // Remove from blacklist
             ragfairConfig.Dynamic.Blacklist.Custom.Remove(keyId);
 
@@ -151,10 +144,8 @@ public class PacifistFleaMarketChanger(
         var prices = _templateTable.Prices;
         var ragfairConfig = _ragfairConfig;
 
-        foreach (var keyIdStr in KeysData.MarkedKeys)
+        foreach (var keyId in KeysData.MarkedKeys)
         {
-            var keyId = (MongoId)keyIdStr;
-
             // Remove from blacklist
             ragfairConfig.Dynamic.Blacklist.Custom.Remove(keyId);
 

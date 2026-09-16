@@ -4,6 +4,7 @@ using SPTarkov.Server.Core.Helpers.Items;
 using SPTarkov.Server.Core.Models.Spt.Config;
 using SPTarkov.Server.Core.Models.Spt.Tables;
 using SPTarkov.Server.Core.Models.Common;
+using SPTarkov.Server.Core.Models.Enums;
 using Softcore.Config;
 using Softcore.Assets;
 
@@ -56,12 +57,8 @@ public class BarterEconomyChanger(
     private void DoBarterEconomy(BarterEconomyConfig config)
     {
         // 1. Compute barter blacklist = all base classes NOT in whitelist
-        var barterBlacklistStrings = FleaMarketData.ActualBaseClasses
+        var barterBlacklist = FleaMarketData.ActualBaseClasses
             .Where(bc => !FleaMarketData.FleaBarterRequestWhitelist.Contains(bc))
-            .ToList();
-
-        var barterBlacklist = barterBlacklistStrings
-            .Select(bc => (MongoId)bc)
             .ToHashSet();
 
         // 2. Apply to ragfair config
@@ -76,7 +73,7 @@ public class BarterEconomyChanger(
         {
             if (item.Type == "Item" &&
                 !IsOfBaseClasses(itemId, barterBlacklist) &&
-                item.Parent != (MongoId)"543be5dd4bdc2deb348b4569") // MONEY base class
+                item.Parent != BaseClasses.MONEY)
             {
                 if (item.Properties?.QuestItem == true)
                 {
@@ -92,10 +89,10 @@ public class BarterEconomyChanger(
         // 4. Apply whitelist overrides
         foreach (var (itemId, price) in FleaMarketData.RequestWhitelist)
         {
-            fleaPrices[(MongoId)itemId] = price;
+            fleaPrices[itemId] = price;
         }
 
-        _logger.Info($"[Softcore] Barter blacklist: {barterBlacklistStrings.Count} base classes");
+        _logger.Info($"[Softcore] Barter blacklist: {barterBlacklist.Count} base classes");
     }
 
     private void AdjustCashOffers(int cashOffersPercentage)
@@ -107,12 +104,9 @@ public class BarterEconomyChanger(
     private void SetupRandomCurrencyDistribution()
     {
         // Set equal distribution across all three currencies for random selection
-        // Roubles: 5449016a4bdc2d6f028b456f
-        // Euros: 569668774bdc2da2298b4568
-        // Dollars: 5696686a4bdc2da3298b456a
-        _ragfairConfig.Dynamic.OfferCurrencyChangePercent[(MongoId)"5449016a4bdc2d6f028b456f"] = 33; // RUB
-        _ragfairConfig.Dynamic.OfferCurrencyChangePercent[(MongoId)"569668774bdc2da2298b4568"] = 33; // EUR
-        _ragfairConfig.Dynamic.OfferCurrencyChangePercent[(MongoId)"5696686a4bdc2da3298b456a"] = 34; // USD
+        _ragfairConfig.Dynamic.OfferCurrencyChangePercent[ItemTpl.MONEY_ROUBLES] = 33;
+        _ragfairConfig.Dynamic.OfferCurrencyChangePercent[ItemTpl.MONEY_EUROS] = 33;
+        _ragfairConfig.Dynamic.OfferCurrencyChangePercent[ItemTpl.MONEY_DOLLARS] = 34;
 
         _logger.Info("[Softcore] Currency distribution: 33% RUB, 33% EUR, 34% USD");
     }

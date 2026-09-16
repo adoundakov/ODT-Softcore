@@ -1,54 +1,112 @@
+using SPTarkov.Server.Core.Models.Common;
+using SPTarkov.Server.Core.Models.Enums;
+
 namespace Softcore.Assets;
 
 /// <summary>
-/// Quest keys and marked keys for pacifist flea market.
-/// NOTE: Item IDs need to be populated with SPT 4.0 values in Phase 4.
-/// TypeScript source uses ItemTpl enums which need to be mapped to actual IDs.
+/// Quest keys and marked keys that the pacifist flea market re-allows.
+/// Ported 1:1 from <c>src/assets/keys.ts</c>.
 /// </summary>
 public static class KeysData
 {
     /// <summary>
-    /// Quest-only keys available on flea
-    /// TODO Phase 4: Populate with actual SPT 4.0 item IDs from ItemTpl enum
+    /// Quest-only keys available on flea. Some are commented out for balance.
     /// </summary>
-    public static readonly HashSet<string> QuestKeys = new()
+    public static readonly HashSet<MongoId> QuestKeys = new()
     {
+        // Whitelist for quest keys updated for 3.10 taken from the Wiki some are commented out for balancing
         // Factory
-        // "KEY_FACTORY_EMERGENCY_EXIT",
-        // "KEYCARD_TERRAGROUP_STORAGE_ROOM",
-
+        ItemTpl.KEY_FACTORY_EMERGENCY_EXIT,
+        ItemTpl.KEYCARD_TERRAGROUP_STORAGE_ROOM,
         // Customs
-        // "KEY_DORM_OVERSEER",
-        // "KEY_DORM_ROOM_114",
-        // "KEY_DORM_ROOM_214",
-        // "KEY_DORM_ROOM_220",
-        // "KEY_DORM_ROOM_303",
-        "5d80cbd886f77470855c26c2",  // Dorm 314 marked (known ID)
-
+        ItemTpl.KEY_DORM_OVERSEER,
+        ItemTpl.KEY_DORM_ROOM_114,
+        // ItemTpl.KEY_DORM_ROOM_203,
+        // ItemTpl.KEY_DORM_ROOM_206,
+        ItemTpl.KEY_DORM_ROOM_214,
+        ItemTpl.KEY_DORM_ROOM_220,
+        ItemTpl.KEY_DORM_ROOM_303,
+        // ItemTpl.KEY_DORM_ROOM_314_MARKED,
+        // ItemTpl.KEY_MACHINERY,
+        ItemTpl.KEY_PORTABLE_BUNKHOUSE,
+        // ItemTpl.KEY_TARCONE_DIRECTORS_OFFICE,
+        // ItemTpl.KEY_TRAILER_PARK_PORTABLE_CABIN,
+        // ItemTpl.KEY_UNKNOWN,
         // Woods
-        // "KEY_ZB014",
-
+        // ItemTpl.KEY_SHTURMANS_STASH,
+        ItemTpl.KEY_ZB014,
         // Shoreline
-        // "KEY_COTTAGE_BACK_DOOR",
-        // "KEY_HEALTH_RESORT_EAST_WING_ROOM_306",
-        // ... more keys
-
-        // Interchange, Labs, Reserve, Lighthouse, Streets, Ground Zero
-        // ... (60+ keys total - to be added in Phase 4)
+        ItemTpl.KEY_COTTAGE_BACK_DOOR,
+        ItemTpl.KEY_HEALTH_RESORT_EAST_WING_ROOM_306,
+        ItemTpl.KEY_HEALTH_RESORT_EAST_WING_ROOM_308,
+        ItemTpl.KEY_HEALTH_RESORT_EAST_WING_ROOM_328,
+        ItemTpl.KEY_HEALTH_RESORT_OFFICE_KEY_WITH_A_BLUE_TAPE,
+        ItemTpl.KEY_HEALTH_RESORT_WEST_WING_OFFICE_ROOM_112,
+        ItemTpl.KEY_HEALTH_RESORT_WEST_WING_ROOM_216,
+        ItemTpl.KEY_HEALTH_RESORT_WEST_WING_ROOM_219,
+        ItemTpl.KEY_HEALTH_RESORT_WEST_WING_ROOM_220,
+        ItemTpl.KEY_HEALTH_RESORT_WEST_WING_ROOM_306,
+        // Interchange
+        ItemTpl.KEY_EMERCOM_MEDICAL_UNIT,
+        ItemTpl.KEY_GOSHAN_CASH_REGISTER,
+        ItemTpl.KEY_KIBA_ARMS_INNER_GRATE_DOOR,
+        ItemTpl.KEY_KIBA_ARMS_OUTER_DOOR,
+        ItemTpl.KEYCARD_OBJECT_11SR,
+        ItemTpl.KEYCARD_OBJECT_21WS,
+        ItemTpl.KEY_OLI_LOGISTICS_DEPARTMENT_OFFICE,
+        // TheLab
+        ItemTpl.KEYCARD_WITH_A_BLUE_MARKING,
+        // ItemTpl.KEYCARD_TERRAGROUP_LABS_ACCESS,
+        ItemTpl.KEYCARD_TERRAGROUP_LABS_KEYCARD_BLACK,
+        ItemTpl.KEY_TERRAGROUP_LABS_MANAGERS_OFFICE_ROOM,
+        ItemTpl.KEY_TERRAGROUP_LABS_WEAPON_TESTING_AREA,
+        // Reserve
+        ItemTpl.KEY_RBKSM,
+        ItemTpl.KEY_RBOB,
+        ItemTpl.KEY_RBORB1,
+        ItemTpl.KEY_RBORB2,
+        ItemTpl.KEY_RBORB3,
+        ItemTpl.KEY_RBSMP,
+        ItemTpl.KEY_RBST,
+        // Lighthouse
+        ItemTpl.KEY_OPERATING_ROOM,
+        ItemTpl.KEY_RADAR_STATION_COMMANDANT_ROOM,
+        ItemTpl.KEY_ROGUE_USEC_BARRACK,
+        ItemTpl.KEY_WATER_TREATMENT_PLANT_STORAGE_ROOM,
+        // Streets
+        ItemTpl.KEY_ABANDONED_FACTORY_MARKED,
+        ItemTpl.KEY_BACKUP_HIDEOUT,
+        ItemTpl.KEY_BELUGA_RESTAURANT_DIRECTOR,
+        ItemTpl.KEY_CAR_DEALERSHIP_CLOSED_SECTION,
+        ItemTpl.KEY_CAR_DEALERSHIP_DIRECTORS_OFFICE_ROOM,
+        ItemTpl.KEY_CHEKANNAYA_15_APARTMENT,
+        ItemTpl.KEY_CONCORDIA_SECURITY_ROOM,
+        ItemTpl.KEY_IRON_GATE,
+        ItemTpl.KEY_NEGOTIATION_ROOM,
+        ItemTpl.KEY_PINEWOOD_HOTEL_ROOM_215,
+        // ItemTpl.KEY_PRIMORSKY_4648_SKYBRIDGE,
+        ItemTpl.KEY_REAL_ESTATE_AGENCY_OFFICE_ROOM,
+        ItemTpl.KEY_RELAXATION_ROOM,
+        // ItemTpl.KEY_RUSTED_BLOODY,
+        ItemTpl.KEY_TERRAGROUP_MEETING_ROOM,
+        ItemTpl.KEY_XRAY_ROOM,
+        // GroundZero
+        ItemTpl.KEY_TERRAGROUP_SCIENCE_OFFICE,
+        // Others
+        ItemTpl.KEY_MISSAM_FORKLIFT,
     };
 
     /// <summary>
-    /// High-value marked keys
-    /// TODO Phase 4: Populate with actual SPT 4.0 item IDs
+    /// High-value marked-room keys
     /// </summary>
-    public static readonly HashSet<string> MarkedKeys = new()
+    public static readonly HashSet<MongoId> MarkedKeys = new()
     {
-        "5d80cbd886f77470855c26c2",  // Dorm 314 marked (known ID)
-        // "KEY_RBBK_MARKED",
-        // "KEY_RBVO_MARKED",
-        // "KEY_SHARED_BEDROOM_MARKED",
-        // "KEY_RBPKPM_MARKED",
-        // "KEY_MYSTERIOUS_ROOM_MARKED",
-        // "KEY_ABANDONED_FACTORY_MARKED",
+        ItemTpl.KEY_DORM_ROOM_314_MARKED,
+        ItemTpl.KEY_RBBK_MARKED,
+        ItemTpl.KEY_RBVO_MARKED,
+        ItemTpl.KEY_SHARED_BEDROOM_MARKED,
+        ItemTpl.KEY_RBPKPM_MARKED,
+        ItemTpl.KEY_MYSTERIOUS_ROOM_MARKED,
+        ItemTpl.KEY_ABANDONED_FACTORY_MARKED,
     };
 }

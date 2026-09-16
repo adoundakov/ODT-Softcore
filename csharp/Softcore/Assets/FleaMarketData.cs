@@ -5,83 +5,332 @@ namespace Softcore.Assets;
 
 /// <summary>
 /// Static data for flea market whitelists, blacklists, and pricing.
-/// Item IDs are from SPT 3.x - will need validation for SPT 4.0 in Phase 4.
+/// Ported 1:1 from <c>src/assets/fleamarket.ts</c>; item and base-class IDs use the
+/// server's generated <see cref="ItemTpl"/> / <see cref="BaseClasses"/> constants so the
+/// compiler rejects any ID that no longer exists in the targeted SPT version.
 /// </summary>
 public static class FleaMarketData
 {
     /// <summary>
-    /// Items that can be bought on flea (specific IDs)
+    /// Items that can be bought on flea outside of the whitelisted handbook categories
     /// </summary>
-    public static readonly HashSet<string> Whitelist = new()
+    public static readonly HashSet<MongoId> Whitelist = new()
     {
-        "572b7d8524597762b472f9d1",  // GP-7 gas mask
-        "59e770b986f7742cbd762754",  // Security vest
-        "59e763f286f7742ee57895da",  // Pilgrim tourist backpack
-        "5d80cbd886f77470855c26c2",  // Dorm 314 marked key
-        "5447e1d04bdc2dff2f8b4567",  // Knife
-        "5a0dc45586f77f39e400e7c1",  // Bars A-2607 95kh18 knife
-        "5a16bb52fcdbcb001a3b00dc",  // Bars A-2607 Damascus knife
-        "59f32c3b86f77472a31742f0",  // Dogtag USEC
-        "59f32bb586f774757e1e8442",  // Dogtag BEAR
-        "5c093ca986f7740a1867ab12",  // Secure container Kappa
-        "5e00c1ad86f774747333222c",  // Team Wendy EXFIL helmet
-        "5ea05cf85ad9772e6624305d",  // Tac-Kek FAST MT helmet (Replica)
-        "67449b6c89d5e1ddc603f504",  // Contraband case key
+        // Whitelist for items that can be bartered FOR on flea, outside of fleaWhitelist categories
+        // Can be modified by user
+        ItemTpl.FACECOVER_GP7_GAS_MASK,
+        ItemTpl.VEST_SECURITY,
+        ItemTpl.BACKPACK_LOLKEK_3F_TRANSFER_TOURIST,
+        ItemTpl.KEY_DORM_ROOM_308,
+        ItemTpl.VISORS_ANTIFRAGMENTATION_GLASSES,
+        ItemTpl.FACECOVER_LOWER_HALFMASK,
+        ItemTpl.HEADWEAR_POMPON_HAT,
+        ItemTpl.HEADWEAR_USHANKA_EAR_FLAP_HAT,
+        ItemTpl.FACECOVER_PESTILY_PLAGUE_MASK,
+        ItemTpl.FACECOVER_NEOPRENE_MASK,
+        ItemTpl.FACECOVER_GP5_GAS_MASK,
+        ItemTpl.VISORS_ROUND_FRAME_SUNGLASSES,
+        ItemTpl.HEADWEAR_PSH97_DJETA_RIOT_HELMET,
+        ItemTpl.KNIFE_BARS_A2607_95KH18,
+        ItemTpl.KNIFE_BARS_A2607_DAMASCUS,
+        ItemTpl.HEADWEAR_LEATHER_CAP,
+        ItemTpl.BACKPACK_DUFFLE_BAG,
+        ItemTpl.HEADPHONES_WALKERS_XCEL_500BT_DIGITAL_HEADSET,
+        // ItemTpl.HEADPHONES_PELTOR_TACTICAL_SPORT_HEADSET,
+        ItemTpl.HEADPHONES_WALKERS_RAZOR_DIGITAL_HEADSET,
+        ItemTpl.HEADPHONES_PELTOR_COMTAC_IV_HYBRID_HEADSET_COYOTE_BROWN,
+        // ItemTpl.HEADWEAR_KINDA_COWBOY_HAT,
+        ItemTpl.PISTOL_MAKAROV_PM_T_9X18PM,
+        ItemTpl.KNIFE_SP8_SURVIVAL_MACHETE,
+        ItemTpl.AMMO_40MMRU_VOG25,
+        ItemTpl.CONTAINER_SIMPLE_WALLET,
+        ItemTpl.KNIFE_ER_FULCRUM_BAYONET,
+        ItemTpl.VISORS_RAYBENCH_HIPSTER_RESERVE_SUNGLASSES,
+        // ItemTpl.FACECOVER_SHEMAGH_GREEN,
+        // ItemTpl.FACECOVER_GHOST_BALACLAVA,
+        // ItemTpl.SILENCER_SUREFIRE_SOCOM556MINI_MONSTER_556X45_SOUND_SUPPRESSOR,
+        // ItemTpl.FOREGRIP_FORTIS_SHIFT_TACTICAL,
+        // ItemTpl.PISTOLGRIP_AR15_HK_ERGO_PSG1_STYLE_PISTOL_GRIP,
+        // ItemTpl.MUZZLECOMBO_AK_CNC_WARRIOR_556X45_MUZZLE_DEVICE_ADAPTER,
+        // ItemTpl.FOREGRIP_MAGPUL_AFG_TACTICAL_FOREGRIP_OLIVE_DRAB,
+        ItemTpl.HEADWEAR_TACKEK_FAST_MT_HELMET_REPLICA,
+        ItemTpl.BARTER_CASE_KEY,
+        ItemTpl.BARREL_MK47_409MM,
     };
 
     /// <summary>
-    /// Base class IDs that can be REQUESTED in barters (food, barter items, meds, etc.)
+    /// Every base class in the game. The barter blacklist is computed as
+    /// <c>ActualBaseClasses - FleaBarterRequestWhitelist</c>.
     /// </summary>
-    public static readonly HashSet<string> FleaBarterRequestWhitelist = new()
+    public static readonly HashSet<MongoId> ActualBaseClasses = new()
     {
-        "5448e8d04bdc2ddf718b4569",  // FOOD
-        "5448e8d64bdc2dce718b4568",  // DRINK
-        "5448eb774bdc2d0a728b4567",  // BARTER_ITEM
-        "5448ecbe4bdc2d60728b4568",  // INFO
-        "5448f39d4bdc2d0a728b4568",  // MEDKIT
-        "5448f3a14bdc2d27728b4569",  // DRUGS
-        "5448f3ac4bdc2dce718b4569",  // MEDICAL
-        "57864c8c245977548867e7f1",  // MEDICAL_SUPPLIES
-        "5d650c3e815116009f6201d2",  // FUEL
-        "543be5664bdc2dd4348b4569",  // MEDS
-        "543be5dd4bdc2deb348b4569",  // MONEY
-        "543be6674bdc2df1348b4569",  // FOOD_DRINK
-        "57864a3d24597754843f8721",  // JEWELRY
-        "57864a66245977548f04a81f",  // ELECTRONICS
-        "57864ada245977548638de91",  // BUILDING_MATERIAL
-        "57864bb7245977548b3b66c2",  // TOOL
-        "57864c322459775490116fbf",  // HOUSEHOLD_GOODS
-        "57864e4c24597754843f8723",  // LUBRICANT
-        "57864ee62459775490116fc1",  // BATTERY
-        "590c745b86f7743cc433c5f2",  // OTHER
-        "54009119af1c881c07000029",  // ITEM
-        "5661632d4bdc2d903d8b456b",  // STACKABLE_ITEM
+        BaseClasses.COMPOUND_ITEM,
+        BaseClasses.ITEM,
+        BaseClasses.STACKABLE_ITEM,
+        BaseClasses.ASSAULT_RIFLE,
+        BaseClasses.AMMO_BOX,
+        BaseClasses.WEAPON,
+        BaseClasses.KEY_MECHANICAL,
+        BaseClasses.GEAR_MOD,
+        BaseClasses.PISTOL,
+        BaseClasses.THROW_WEAP,
+        BaseClasses.SEARCHABLE_ITEM,
+        BaseClasses.MAGAZINE,
+        BaseClasses.ARMORED_EQUIPMENT,
+        BaseClasses.FOOD_DRINK,
+        BaseClasses.MEDS,
+        BaseClasses.FUNCTIONAL_MOD,
+        BaseClasses.DRINK,
+        BaseClasses.FOOD,
+        BaseClasses.MONEY,
+        BaseClasses.TACTICAL_COMBO,
+        BaseClasses.SILENCER,
+        BaseClasses.KNIFE,
+        BaseClasses.SHOTGUN,
+        BaseClasses.MOB_CONTAINER,
+        BaseClasses.FLASH_HIDER,
+        BaseClasses.ASSAULT_SCOPE,
+        BaseClasses.OPTIC_SCOPE,
+        BaseClasses.VEST,
+        BaseClasses.BACKPACK,
+        BaseClasses.MEDICAL,
+        BaseClasses.DRUGS,
+        BaseClasses.MED_KIT,
+        BaseClasses.MULTITOOLS,
+        BaseClasses.AMMO,
+        BaseClasses.ARMOR,
+        BaseClasses.MOD,
+        BaseClasses.MUZZLE,
+        BaseClasses.MASTER_MOD,
+        BaseClasses.VISORS,
+        BaseClasses.POCKETS,
+        BaseClasses.BARREL,
+        BaseClasses.SNIPER_RIFLE,
+        BaseClasses.COLLIMATOR,
+        BaseClasses.MUZZLE_COMBO,
+        BaseClasses.PISTOL_GRIP,
+        BaseClasses.FOREGRIP,
+        BaseClasses.SIGHTS,
+        BaseClasses.RECEIVER,
+        BaseClasses.CHARGE,
+        BaseClasses.HANDGUARD,
+        BaseClasses.MOUNT,
+        BaseClasses.STOCK,
+        BaseClasses.IRON_SIGHT,
+        BaseClasses.INVENTORY,
+        BaseClasses.AUXILIARY_MOD,
+        BaseClasses.HEADWEAR,
+        BaseClasses.EQUIPMENT,
+        BaseClasses.HEADPHONES,
+        BaseClasses.LAUNCHER,
+        BaseClasses.LOOT_CONTAINER,
+        BaseClasses.STASH,
+        BaseClasses.LOCKABLE_CONTAINER,
+        BaseClasses.BATTERY,
+        BaseClasses.ELECTRONICS,
+        BaseClasses.LUBRICANT,
+        BaseClasses.STATIONARY_CONTAINER,
+        BaseClasses.BIPOD,
+        BaseClasses.GASBLOCK,
+        BaseClasses.NIGHT_VISION,
+        BaseClasses.FACE_COVER,
+        BaseClasses.JEWELRY,
+        BaseClasses.OTHER,
+        BaseClasses.BUILDING_MATERIAL,
+        BaseClasses.HOUSEHOLD_GOODS,
+        BaseClasses.ASSAULT_CARBINE,
+        BaseClasses.MAP,
+        BaseClasses.KEYCARD,
+        BaseClasses.COMPACT_COLLIMATOR,
+        BaseClasses.MARKSMAN_RIFLE,
+        BaseClasses.SIMPLE_CONTAINER,
+        BaseClasses.BARTER_ITEM,
+        BaseClasses.SMG,
+        BaseClasses.FLASHLIGHT,
+        BaseClasses.TOOL,
+        BaseClasses.INFO,
+        BaseClasses.REPAIR_KITS,
+        BaseClasses.SPEC_ITEM,
+        BaseClasses.MEDICAL_SUPPLIES,
+        BaseClasses.SPECIAL_SCOPE,
+        BaseClasses.ARM_BAND,
+        BaseClasses.MACHINE_GUN,
+        BaseClasses.STIMULATOR,
+        BaseClasses.THERMAL_VISION,
+        BaseClasses.KEY,
+        BaseClasses.FUEL,
+        BaseClasses.GRENADE_LAUNCHER,
+        BaseClasses.COMPASS,
+        BaseClasses.SORTING_TABLE,
+        BaseClasses.REVOLVER,
+        BaseClasses.CYLINDER_MAGAZINE,
+        BaseClasses.PORTABLE_RANGE_FINDER,
+        BaseClasses.SPRING_DRIVEN_CYLINDER,
+        BaseClasses.RADIO_TRANSMITTER,
+        BaseClasses.RANDOM_LOOT_CONTAINER,
+        BaseClasses.HIDEOUT_AREA_CONTAINER,
+        BaseClasses.BUILT_IN_INSERTS,
+        BaseClasses.ARMOR_PLATE,
+        BaseClasses.CULTIST_AMULET,
+        BaseClasses.MARK_OF_UNKNOWN,
+        BaseClasses.PLANTING_KITS,
+        BaseClasses.FLYER,
     };
 
     /// <summary>
-    /// Specific items with custom flea prices (for barter requests)
+    /// Base classes that can be REQUESTED in barter offers (food, barter items, meds, etc.)
     /// </summary>
-    public static readonly Dictionary<string, int> RequestWhitelist = new()
+    public static readonly HashSet<MongoId> FleaBarterRequestWhitelist = new()
     {
-        { "6389c7750ef44505c87f5996", 1480000 },  // Microcontroller board
-        { "6389c7f115805221fb410466", 2126000 },  // Far-forward GPS Signal Amplifier Unit
-        { "6389c85357baa773a825b356", 4924000 },  // Advanced current converter
-        { "59faff1d86f7746c51718c9c", 100000 },   // Physical Bitcoin
-        { "6389c8fb46b54c634724d847", 500000 },   // Silicon Optoelectronic Integrated Circuits textbook
-        { "6389c92d52123d5dd17f8876", 490000 },   // Advanced Electronic Materials textbook
-        { "6656560053eaaa7a23349c86", 900000 },   // Lega Medal
-        { "6331ba83f2ab4f3f09502983", 0 },        // Secure Flash drive V2 (blacklist)
-        { "67449b6c89d5e1ddc603f504", 0 },        // Case key (blacklist)
-        { "5e99711486f7744bfc4af328", 0 },        // Sanitar's first aid kit (blacklist)
-        { "5e99735686f7744bfc4af32c", 0 },        // Sanitar kit (blacklist)
-        { "5b9b9020e7ef6f5716480215", 0 },        // dogtag (blacklist)
+        // Items that can be REQUESTED for flea offers
+        // For user modability:
+        // BaseClasses.WEAPON,
+        // BaseClasses.UBGL,
+        // BaseClasses.ARMOR,
+        // BaseClasses.ARMORED_EQUIPMENT,
+        // BaseClasses.REPAIR_KITS,
+        // BaseClasses.HEADWEAR,
+        // BaseClasses.FACECOVER,
+        // BaseClasses.VEST,
+        // BaseClasses.BACKPACK,
+        // BaseClasses.COMPOUND,
+        // BaseClasses.VISORS,
+        BaseClasses.FOOD,
+        // BaseClasses.GAS_BLOCK,
+        // BaseClasses.RAIL_COVER,
+        BaseClasses.DRINK,
+        BaseClasses.BARTER_ITEM,
+        BaseClasses.INFO,
+        BaseClasses.MED_KIT,
+        BaseClasses.DRUGS,
+        // BaseClasses.STIMULATOR,
+        BaseClasses.MEDICAL,
+        BaseClasses.MEDICAL_SUPPLIES,
+        // BaseClasses.MOD,
+        // BaseClasses.FUNCTIONAL_MOD,
+        BaseClasses.FUEL,
+        // BaseClasses.GEAR_MOD,
+        // BaseClasses.STOCK,
+        // BaseClasses.FOREGRIP,
+        // BaseClasses.MASTER_MOD,
+        // BaseClasses.MOUNT,
+        // BaseClasses.MUZZLE,
+        // BaseClasses.SIGHTS,
+        BaseClasses.MEDS,
+        // BaseClasses.MAP,
+        BaseClasses.MONEY,
+        // BaseClasses.NIGHTVISION,
+        // BaseClasses.THERMAL_VISION,
+        // BaseClasses.KEY,
+        // BaseClasses.KEY_MECHANICAL,
+        // BaseClasses.KEYCARD,
+        // BaseClasses.EQUIPMENT,
+        // BaseClasses.THROW_WEAPON,
+        BaseClasses.FOOD_DRINK,
+        // BaseClasses.PISTOL,
+        // BaseClasses.REVOLVER,
+        // BaseClasses.SMG,
+        // BaseClasses.ASSAULT_RIFLE,
+        // BaseClasses.ASSAULT_CARBINE,
+        // BaseClasses.SHOTGUN,
+        // BaseClasses.MARKSMAN_RIFLE,
+        // BaseClasses.SNIPER_RIFLE,
+        // BaseClasses.MACHINE_GUN,
+        // BaseClasses.GRENADE_LAUNCHER,
+        // BaseClasses.SPECIAL_WEAPON,
+        // BaseClasses.SPEC_ITEM,
+        // BaseClasses.SPRING_DRIVEN_CYLINDER,
+        // BaseClasses.KNIFE,
+        // BaseClasses.AMMO,
+        // BaseClasses.AMMO_BOX,
+        // BaseClasses.LOOT_CONTAINER,
+        // BaseClasses.MOB_CONTAINER,
+        // BaseClasses.SEARCHABLE_ITEM,
+        // BaseClasses.STASH,
+        // BaseClasses.SORTING_TABLE,
+        // BaseClasses.LOCKABLE_CONTAINER,
+        // BaseClasses.SIMPLE_CONTAINER,
+        // BaseClasses.INVENTORY,
+        // BaseClasses.STATIONARY_CONTAINER,
+        // BaseClasses.POCKETS,
+        // BaseClasses.ARMBAND,
+        BaseClasses.JEWELRY,
+        BaseClasses.ELECTRONICS,
+        BaseClasses.BUILDING_MATERIAL,
+        BaseClasses.TOOL,
+        BaseClasses.HOUSEHOLD_GOODS,
+        BaseClasses.LUBRICANT,
+        BaseClasses.BATTERY,
+        // BaseClasses.ASSAULT_SCOPE,
+        // BaseClasses.TACTICAL_COMBO,
+        // BaseClasses.FLASHLIGHT,
+        // BaseClasses.MAGAZINE,
+        // BaseClasses.LIGHT_LASER_DESIGNATOR,
+        // BaseClasses.FLASH_HIDER,
+        // BaseClasses.COLLIMATOR,
+        // BaseClasses.IRON_SIGHT,
+        // BaseClasses.COMPACT_COLLIMATOR,
+        // BaseClasses.COMPENSATOR,
+        // BaseClasses.OPTIC_SCOPE,
+        // BaseClasses.SPECIAL_SCOPE,
+        BaseClasses.OTHER,
+        // BaseClasses.SILENCER,
+        // BaseClasses.PORTABLE_RANGE_FINDER,
+        BaseClasses.ITEM,
+        // BaseClasses.CYLINDER_MAGAZINE,
+        // BaseClasses.AUXILIARY_MOD,
+        // BaseClasses.BIPOD,
+        // BaseClasses.HEADPHONES,
+        // BaseClasses.RANDOM_LOOT_CONTAINER,
+        BaseClasses.STACKABLE_ITEM,
+        // BaseClasses.BUILT_IN_INSERTS,
+        // BaseClasses.ARMOR_PLATE,
+        // BaseClasses.CULTIST_AMULET,
+        // BaseClasses.RADIO_TRANSMITTER,
+        // BaseClasses.HANDGUARD,
+        // BaseClasses.PISTOL_GRIP,
+        // BaseClasses.RECEIVER,
+        // BaseClasses.BARREL,
+        // BaseClasses.CHARGING_HANDLE,
+        // BaseClasses.COMB_MUZZLE_DEVICE,
+        // BaseClasses.HIDEOUT_AREA_CONTAINER,
+        // BaseClasses.FLYER,
     };
 
     /// <summary>
-    /// Handbook category IDs allowed for buying on flea (pacifist categories)
+    /// Specific items with overridden flea prices for barter requests.
+    /// A price of 0 blocks the item from being requested.
     /// </summary>
-    public static readonly HashSet<string> FleaListingsWhitelistHandbook = new()
+    public static readonly Dictionary<MongoId, int> RequestWhitelist = new()
     {
+        // Whitelist for specific items that can be REQUESTED for flea offers and flea price patch. Those items cannot be bought, but can be requested.
+        { ItemTpl.BARTER_MICROCONTROLLER_BOARD, 1480000 },
+        { ItemTpl.BARTER_FARFORWARD_GPS_SIGNAL_AMPLIFIER_UNIT, 2126000 },
+        { ItemTpl.BARTER_ADVANCED_CURRENT_CONVERTER, 4924000 },
+        { ItemTpl.BARTER_PHYSICAL_BITCOIN, 100000 },
+        { ItemTpl.INFO_SILICON_OPTOELECTRONIC_INTEGRATED_CIRCUITS_TEXTBOOK, 500000 },
+        { ItemTpl.INFO_ADVANCED_ELECTRONIC_MATERIALS_TEXTBOOK, 490000 },
+        { ItemTpl.BARTER_LEGA_MEDAL, 900000 },
+        { ItemTpl.INFO_SECURE_FLASH_DRIVE_V2, 0 },
+        { ItemTpl.BARTER_CASE_KEY, 0 },
+        { ItemTpl.MEDKIT_SANITARS_FIRST_AID_KIT, 0 },
+        { ItemTpl.MEDICAL_SANITAR_KIT, 0 },
+        { ItemTpl.BARTER_DOGTAGT, 0 },
+        { ItemTpl.INFO_ENCRYPTED_FLASH_DRIVE, 0 },
+        { ItemTpl.BARTER_SHYSHKA_CHRISTMAS_TREE_LIFE_EXTENDER, 0 },
+        { ItemTpl.BARTER_JAR_OF_PICKLES, 0 },
+        { ItemTpl.BARTER_OLIVIER_SALAD_BOX, 0 },
+    };
+
+    /// <summary>
+    /// Handbook category IDs whose items may be BOUGHT on flea (pacifist categories).
+    /// Handbook categories have no generated enum, so these stay as raw IDs.
+    /// </summary>
+    public static readonly HashSet<MongoId> FleaListingsWhitelistHandbook = new()
+    {
+        // Whitelist for ENABLING BUYING on flea, used in Pacifist_FleaMarket
+        // Handbook Categories IDs, updated for 3.10.5
+        // Can be modified by user
         "5b47574386f77428ca22b2ed",  // Energy elements
         "5b47574386f77428ca22b2ee",  // Building materials
         "5b47574386f77428ca22b2ef",  // Electronics
@@ -91,149 +340,446 @@ public static class FleaMarketData
         "5b47574386f77428ca22b2f3",  // Medical supplies
         "5b47574386f77428ca22b2f4",  // Others
         "5b47574386f77428ca22b2f6",  // Tools
+        // "5b47574386f77428ca22b32f",  // Facecovers
+        // "5b47574386f77428ca22b330",  // Headgear
+        // "5b47574386f77428ca22b331",  // Eyewear
         "5b47574386f77428ca22b335",  // Drinks
         "5b47574386f77428ca22b336",  // Food
         "5b47574386f77428ca22b337",  // Pills
         "5b47574386f77428ca22b338",  // Medkits
         "5b47574386f77428ca22b339",  // Injury treatment
         "5b47574386f77428ca22b33a",  // Injectors
+        // "5b47574386f77428ca22b33b",  // Rounds
+        // "5b47574386f77428ca22b33c",  // Ammo packs
         "5b47574386f77428ca22b33e",  // Barter items
+        // "5b47574386f77428ca22b33f",  // Gear
         "5b47574386f77428ca22b340",  // Provisions
         "5b47574386f77428ca22b341",  // Info items
+        // "5b47574386f77428ca22b342",  // Keys
         "5b47574386f77428ca22b343",  // Maps
         "5b47574386f77428ca22b344",  // Medication
+        // "5b47574386f77428ca22b345",  // Special equipment
+        // "5b47574386f77428ca22b346",  // Ammo
+        // "5b5f6f3c86f774094242ef87",  // Headsets
+        // "5b5f6f6c86f774093f2ecf0b",  // Backpacks
+        // "5b5f6f8786f77447ed563642",  // Tactical rigs
+        // "5b5f6fa186f77409407a7eb7",  // Storage containers
+        // "5b5f6fd286f774093f2ecf0d",  // Secure containers
+        // "5b5f701386f774093f2ecf0f",  // Body armor
+        // "5b5f704686f77447ec5d76d7",  // Gear components
+        // "5b5f71a686f77447ed5636ab",  // Weapon parts & mods
+        // "5b5f71b386f774093f2ecf11",  // Functional mods
+        // "5b5f71c186f77409407a7ec0",  // Bipods
+        // "5b5f71de86f774093f2ecf13",  // Foregrips
+        // "5b5f724186f77447ed5636ad",  // Muzzle devices
+        // "5b5f724c86f774093f2ecf15",  // Flashhiders & brakes
+        // "5b5f72f786f77447ec5d7702",  // Muzzle adapters
+        // "5b5f731a86f774093e6cb4f9",  // Suppressors
+        // "5b5f736886f774094242f193",  // Light & laser devices
+        // "5b5f737886f774093e6cb4fb",  // Tactical combo devices
+        // "5b5f73ab86f774094242f195",  // Flashlights
+        // "5b5f73c486f77447ec5d7704",  // Laser target pointers
+        // "5b5f73ec86f774093e6cb4fd",  // Sights
+        // "5b5f740a86f77447ec5d7706",  // Assault scopes
+        // "5b5f742686f774093e6cb4ff",  // Collimators
+        // "5b5f744786f774094242f197",  // Compact collimators
+        // "5b5f746686f77447ec5d7708",  // Iron sights
+        // "5b5f748386f774093e6cb501",  // Optics
+        // "5b5f749986f774094242f199",  // Special purpose sights
+        // "5b5f74cc86f77447ec5d770a",  // Auxiliary parts
+        // "5b5f750686f774093e6cb503",  // Gear mods
+        // "5b5f751486f77447ec5d770c",  // Charging handles
+        // "5b5f752e86f774093e6cb505",  // Launchers
+        // "5b5f754a86f774094242f19b",  // Magazines
+        // "5b5f755f86f77447ec5d770e",  // Mounts
+        // "5b5f757486f774093e6cb507",  // Stocks & chassis
+        // "5b5f759686f774094242f19d",  // Magwells
+        // "5b5f75b986f77447ec5d7710",  // Vital parts
+        // "5b5f75c686f774094242f19f",  // Barrels
+        // "5b5f75e486f77447ec5d7712",  // Handguards
+        // "5b5f760586f774093e6cb509",  // Gas blocks
+        // "5b5f761f86f774094242f1a1",  // Pistol grips
+        // "5b5f764186f77447ec5d7714",  // Receivers & slides
+        // "5b5f78b786f77447ed5636af",  // Money
+        // "5b5f78dc86f77409407a7f8e",  // Weapons
+        // "5b5f78e986f77447ed5636b1",  // Assault carbines
+        // "5b5f78fc86f77409407a7f90",  // Assault rifles
+        // "5b5f791486f774093f2ed3be",  // Marksman rifles
+        // "5b5f792486f77447ed5636b3",  // Pistols
+        // "5b5f794b86f77409407a7f92",  // Shotguns
+        // "5b5f796a86f774093f2ed3c0",  // SMGs
+        // "5b5f798886f77447ed5636b5",  // Bolt-action rifles
+        // "5b5f79a486f77409407a7f94",  // Machine guns
+        // "5b5f79d186f774093f2ed3c2",  // Grenade launchers
+        // "5b5f79eb86f77447ed5636b7",  // Special weapons
+        // "5b5f7a0886f77409407a7f96",  // Melee weapons
+        // "5b5f7a2386f774093f2ed3c4",  // Throwables
+        // "5b619f1a86f77450a702a6f3",  // Quest items
+        // "5c518ec986f7743b68682ce2",  // Mechanical keys
+        // "5c518ed586f774119a772aee",  // Electronic keys
+        // "6564b96a189fe36f356d177c",  // hidden armor incerts
     };
 
     /// <summary>
-    /// All base class IDs in the game (used to compute barter blacklist)
-    /// This is a subset - full list has 159 items (will be completed in Phase 4)
+    /// BSG's hardcoded flea blacklist as of 3.10.2. Only used to warn when a blacklist
+    /// unlocker is detected alongside the barter economy.
     /// </summary>
-    public static readonly HashSet<string> ActualBaseClasses = new()
+    public static readonly HashSet<MongoId> BSGBlacklist = new()
     {
-        "566162e44bdc2d3f298b4573",  // CompoundItem
-        "54009119af1c881c07000029",  // Item
-        "5661632d4bdc2d903d8b456b",  // StackableItem
-        "5447b5f14bdc2d61278b4567",  // AssaultRifle
-        "543be5cb4bdc2deb348b4568",  // AmmoBox
-        "5422acb9af1c889c16000029",  // Weapon
-        "5c99f98d86f7745c314214b3",  // KeyMechanical
-        "55802f3e4bdc2de7118b4584",  // GearMod
-        "5447b5cf4bdc2d65278b4567",  // Pistol
-        "543be6564bdc2df4348b4568",  // ThrowWeap
-        "566168634bdc2d144c8b456c",  // SearchableItem
-        "5448bc234bdc2d3c308b4569",  // Magazine
-        "57bef4c42459772e8d35a53b",  // ArmoredEquipment
-        "543be6674bdc2df1348b4569",  // FoodDrink
-        "543be5664bdc2dd4348b4569",  // Meds
-        "550aa4154bdc2dd8348b456b",  // FunctionalMod
-        "5448e8d64bdc2dce718b4568",  // Drink
-        "5448e8d04bdc2ddf718b4569",  // Food
-        "543be5dd4bdc2deb348b4569",  // Money
-        "55818b164bdc2ddc698b456c",  // TacticalCombo
-        "550aa4cd4bdc2dd8348b456c",  // Silencer
-        "5447e1d04bdc2dff2f8b4567",  // Knife
-        "5447b6094bdc2dc3278b4567",  // Shotgun
-        "5448bf274bdc2dfc2f8b456a",  // MobContainer
-        "550aa4bf4bdc2dd6348b456b",  // FlashHider
-        "55818add4bdc2d5b648b456f",  // AssaultScope
-        "55818ae44bdc2dde698b456c",  // OpticScope
-        "5448e5284bdc2dcb718b4567",  // Vest
-        "5448e53e4bdc2d60728b4567",  // Backpack
-        "5448f3ac4bdc2dce718b4569",  // Medical
-        "5448f3a14bdc2d27728b4569",  // Drugs
-        "5448f39d4bdc2d0a728b4568",  // MedKit
-        "5485a8684bdc2da71d8b4567",  // Ammo
-        "5448e54d4bdc2dcc718b4568",  // Armor
-        "5448fe124bdc2da5018b4567",  // Mod
-        "5448fe394bdc2d0d028b456c",  // Muzzle
-        "55802f4a4bdc2ddb688b4569",  // MasterMod
-        "5448e5724bdc2ddf718b4568",  // Visors
-        "557596e64bdc2dc2118b4571",  // Pockets
-        "555ef6e44bdc2de9068b457e",  // Barrel
-        "5447b6254bdc2dc3278b4568",  // SniperRifle
-        "55818ad54bdc2ddc698b4569",  // Collimator
-        "550aa4dd4bdc2dc9348b4569",  // MuzzleCombo
-        "55818a684bdc2ddd698b456d",  // PistolGrip
-        "55818af64bdc2d5b648b4570",  // Foregrip
-        "5448fe7a4bdc2d6f028b456b",  // Sights
-        "55818a304bdc2db5418b457d",  // Receiver
-        "55818a6f4bdc2db9688b456b",  // Charge
-        "55818a104bdc2db9688b4569",  // Handguard
-        "55818b224bdc2dde698b456f",  // Mount
-        "55818a594bdc2db9688b456a",  // Stock
-        "55818ac54bdc2d5b648b456e",  // IronSight
-        "55d720f24bdc2d88028b456d",  // Inventory
-        "5a74651486f7744e73386dd1",  // AuxiliaryMod
-        "5a341c4086f77401f2541505",  // Headwear
-        "543be5f84bdc2dd4348b456a",  // Equipment
-        "5645bcb74bdc2ded0b8b4578",  // Headphones
-        "55818b014bdc2ddc698b456b",  // Launcher
-        "566965d44bdc2d814c8b4571",  // LootContainer
-        "566abbb64bdc2d144c8b457d",  // Stash
-        "5671435f4bdc2d96058b4569",  // LockableContainer
-        "57864ee62459775490116fc1",  // Battery
-        "57864a66245977548f04a81f",  // Electronics
-        "57864e4c24597754843f8723",  // Lubricant
-        "567583764bdc2d98058b456e",  // StationaryContainer
-        "55818afb4bdc2dde698b456d",  // Bipod
-        "56ea9461d2720b67698b456f",  // Gasblock
-        "5a2c3a9486f774688b05e574",  // NightVision
-        "5a341c4686f77469e155819e",  // FaceCover
-        "57864a3d24597754843f8721",  // Jewelry
-        "590c745b86f7743cc433c5f2",  // Other
-        "57864ada245977548638de91",  // BuildingMaterial
-        "57864c322459775490116fbf",  // HouseholdGoods
-        "5447b5fc4bdc2d87278b4567",  // AssaultCarbine
-        "567849dd4bdc2d150f8b456e",  // Map
-        "5c164d2286f774194c5e69fa",  // Keycard
-        "55818acf4bdc2dde698b456b",  // CompactCollimator
-        "5447b6194bdc2d67278b4567",  // MarksmanRifle
-        "5795f317245977243854e041",  // SimpleContainer
-        "5448eb774bdc2d0a728b4567",  // BarterItem
-        "5447b5e04bdc2d62278b4567",  // Smg
-        "55818b084bdc2d5b648b4571",  // Flashlight
-        "57864bb7245977548b3b66c2",  // Tool
-        "5448ecbe4bdc2d60728b4568",  // Info
-        "616eb7aea207f41933308f46",  // RepairKits
-        "5447e0e74bdc2d3c308b4567",  // SpecItem
-        "57864c8c245977548867e7f1",  // MedicalSupplies
-        "55818aeb4bdc2ddc698b456a",  // SpecialScope
-        "5b3f15d486f77432d0509248",  // ArmBand
-        "5447bed64bdc2d97278b4568",  // MachineGun
-        "5448f3a64bdc2d60728b456a",  // Stimulator
-        "5d21f59b6dbe99052b54ef83",  // ThermalVision
-        "543be5e94bdc2df1348b4568",  // Key
-        "5d650c3e815116009f6201d2",  // Fuel
-        "5447bedf4bdc2d87278b4568",  // GrenadeLauncher
-        // More classes exist - will be added in Phase 4
-    };
-
-    /// <summary>
-    /// BSG's hardcoded flea market blacklist (secure containers, OP items, etc.)
-    /// This is a subset - full list has 700+ items (will be completed in Phase 4)
-    /// </summary>
-    public static readonly HashSet<string> BSGBlacklist = new()
-    {
-        "544a11ac4bdc2d470e8b456a",  // Secure container Alpha
-        "5857a8b324597729ab0a0e7d",  // Secure container Beta
-        "5857a8bc2459772bad15db29",  // Secure container Gamma
-        "59db794186f77448bc595262",  // Secure container Epsilon
-        "5c093ca986f7740a1867ab12",  // Secure container Kappa
-        "59faff1d86f7746c51718c9c",  // Physical Bitcoin
-        "5aafbcd986f7745e590fff23",  // Medicine case
-        "5b6d9ce188a4501afc1b2b25",  // T H I C C Weapon case
-        "5b7c710788a4506dec015957",  // Lucky Scav Junk box
-        "5c0a840b86f7742ffa4f2482",  // T H I C C item case
-        "59f32bb586f774757e1e8442",  // Dogtag BEAR
-        "59f32c3b86f77472a31742f0",  // Dogtag USEC
-        "5df8a6a186f77412640e2e80",  // Christmas tree ornament (Red)
-        "5df8a72c86f77412640e2e83",  // Christmas tree ornament (Silver)
-        "5df8a77486f77412672a1e3f",  // Christmas tree ornament (Violet)
-        "665ee77ccf2d642e98220bca",  // Secure container Gamma
-        "6662e9aca7e0b43baa3d5f74",  // Dogtag BEAR
-        "6662e9cda7e0b43baa3d5f76",  // Dogtag BEAR
-        "6662e9f37fa79a6d83730fa0",  // Dogtag USEC
-        "6662ea05f6259762c56f3189",  // Dogtag USEC
-        // More items exist - will be added in Phase 4
+        // BSGblacklist from 3.10.2, hardcoded for safety, NEED TO UPDATE ON NEW PATCHES!!!!!!!
+        // DON'T TOUCH THIS
+        ItemTpl.SECURE_CONTAINER_ALPHA,
+        ItemTpl.MAGAZINE_556X45_MAG560_60RND,
+        ItemTpl.AMMO_556X45_M855A1,
+        ItemTpl.ARMOR_6B43_ZABRALOSH_BODY_ARMOR_EMR,
+        ItemTpl.AMMO_762X54R_SNB,
+        ItemTpl.LAUNCHER_GP34_40MM_UNDERBARREL_GRENADE,
+        ItemTpl.AMMO_545X39_BP,
+        ItemTpl.AMMO_545X39_BS,
+        ItemTpl.SECURE_WAIST_POUCH,
+        ItemTpl.AMMOBOX_545X39_BS_120RND,
+        ItemTpl.AMMOBOX_545X39_BS_120RND_DAMAGED,
+        ItemTpl.AMMOBOX_545X39_BS_30RND,
+        ItemTpl.AMMOBOX_545X39_BT_120RND,
+        ItemTpl.AMMOBOX_545X39_BT_120RND_DAMAGED,
+        ItemTpl.AMMOBOX_545X39_BT_30RND,
+        ItemTpl.MARKSMANRIFLE_VSS_VINTOREZ_9X39_SPECIAL_SNIPER_RIFLE,
+        ItemTpl.AMMO_9X39_SP6,
+        ItemTpl.SECURE_CONTAINER_BETA,
+        ItemTpl.SECURE_CONTAINER_GAMMA,
+        ItemTpl.AMMO_762X51_M80,
+        ItemTpl.KEY_MACHINERY,
+        ItemTpl.KEY_UNKNOWN,
+        ItemTpl.MAGAZINE_556X45_PMAG_D60_60RND,
+        ItemTpl.SECURE_CONTAINER_EPSILON,
+        ItemTpl.AMMO_762X39_BP,
+        ItemTpl.AMMO_556X45_M995,
+        ItemTpl.BACKPACK_PILGRIM_TOURIST,
+        ItemTpl.AMMO_762X54R_PS,
+        ItemTpl.BARTER_DOGTAG_BEAR,
+        ItemTpl.BARTER_DOGTAG_USEC,
+        ItemTpl.BARTER_PHYSICAL_BITCOIN,
+        ItemTpl.HEADWEAR_OPSCORE_FAST_MT_SUPER_HIGH_CUT_HELMET_BLACK,
+        ItemTpl.ARMOREDEQUIPMENT_OPSCORE_FAST_MULTIHIT_BALLISTIC_FACE_SHIELD,
+        ItemTpl.SPECIALSCOPE_TRIJICON_REAPIR_THERMAL_SCOPE,
+        ItemTpl.AMMO_762X51_M61,
+        ItemTpl.AMMO_762X51_M62,
+        ItemTpl.HEADWEAR_ALTYN_BULLETPROOF_HELMET_OLIVE_DRAB,
+        ItemTpl.CONTAINER_MEDICINE_CASE,
+        ItemTpl.BACKPACK_SSO_ATTACK_2_RAID_BACKPACK_KHAKI,
+        ItemTpl.HEADWEAR_OPSCORE_FAST_MT_SUPER_HIGH_CUT_HELMET_URBAN_TAN,
+        ItemTpl.HEADWEAR_DEVTAC_RONIN_RESPIRATOR,
+        ItemTpl.CONTAINER_THICC_WEAPON_CASE,
+        ItemTpl.CONTAINER_LUCKY_SCAV_JUNK_BOX,
+        ItemTpl.AMMO_46X30_AP_SX,
+        ItemTpl.NIGHTVISION_L3HARRIS_GPNVG18_NIGHT_VISION_GOGGLES,
+        ItemTpl.ARMOREDEQUIPMENT_MASKA1SCH_FACE_SHIELD_OLIVE_DRAB,
+        ItemTpl.SECURE_CONTAINER_KAPPA,
+        ItemTpl.CONTAINER_THICC_ITEM_CASE,
+        ItemTpl.AMMO_545X39_PPBS,
+        ItemTpl.AMMO_9X39_BP,
+        ItemTpl.ARMOREDEQUIPMENT_OPSCORE_SLAAP_ARMOR_HELMET_PLATE_TAN,
+        ItemTpl.BACKPACK_MYSTERY_RANCH_BLACKJACK_50_BACKPACK_MULTICAM,
+        ItemTpl.BACKPACK_3V_GEAR_PARATUS_3DAY_OPERATORS_TACTICAL_BACKPACK_FOLIAGE_GREY,
+        ItemTpl.AMMOBOX_9X39_BP_8RND,
+        ItemTpl.AMMOBOX_545X39_PPBS_30RND,
+        ItemTpl.HEADWEAR_CRYE_PRECISION_AIRFRAME_HELMET_TAN,
+        ItemTpl.MAGAZINE_366TKM_AKA16_73RND,
+        ItemTpl.HEADWEAR_VULKAN5_LSHZ5_BULLETPROOF_HELMET_BLACK,
+        ItemTpl.ARMOREDEQUIPMENT_VULKAN5_HELMET_FACE_SHIELD,
+        ItemTpl.ARMOR_FORT_REDUTT5_BODY_ARMOR_SMOG,
+        ItemTpl.AMMO_127X55_PS12B,
+        ItemTpl.AMMO_57X28_SB193,
+        ItemTpl.MAGAZINE_366TKM_X47_762_50RND,
+        ItemTpl.SPECIALSCOPE_FLIR_RS32_2259X_35MM_60HZ_THERMAL_RIFLESCOPE,
+        ItemTpl.AMMO_12G_AP20,
+        ItemTpl.AMMO_12G_CSP,
+        ItemTpl.ASSAULTRIFLE_DESERT_TECH_MDR_762X51_ASSAULT_RIFLE,
+        ItemTpl.BACKPACK_6SH118_RAID_BACKPACK_EMR,
+        ItemTpl.BARTER_CHRISTMAS_TREE_ORNAMENT_RED,
+        ItemTpl.BARTER_CHRISTMAS_TREE_ORNAMENT_SILVER,
+        ItemTpl.BARTER_CHRISTMAS_TREE_ORNAMENT_VIOLET,
+        ItemTpl.HEADWEAR_TEAM_WENDY_EXFIL_BALLISTIC_HELMET_BLACK,
+        ItemTpl.ARMOREDEQUIPMENT_TEAM_WENDY_EXFIL_BALLISTIC_FACE_SHIELD_BLACK,
+        ItemTpl.HEADWEAR_TEAM_WENDY_EXFIL_BALLISTIC_HELMET_COYOTE_BROWN,
+        ItemTpl.ARMOREDEQUIPMENT_TEAM_WENDY_EXFIL_BALLISTIC_FACE_SHIELD_COYOTE_BROWN,
+        ItemTpl.AMMO_762X54R_BT,
+        ItemTpl.AMMO_762X54R_BS,
+        ItemTpl.GRENADELAUNCHER_FN40GL_01,
+        ItemTpl.SHOTGUN_TOZ_KS23M_23X75MM_PUMPACTION,
+        ItemTpl.AMMO_23X75_ZVEZDA,
+        ItemTpl.ARMOREDEQUIPMENT_DIAMOND_AGE_BASTION_HELMET_ARMOR_PLATE,
+        ItemTpl.AMMO_40X46_M441,
+        ItemTpl.AMMO_40X46_M381,
+        ItemTpl.AMMO_762X51_M993,
+        ItemTpl.AMMO_366TKM_APM,
+        ItemTpl.AMMO_40X46_M433,
+        ItemTpl.BACKPACK_EBERLESTOCK_F4_TERMINATOR_LOAD_BEARING_BACKPACK_TIGER_STRIPE,
+        ItemTpl.HEADWEAR_GALVION_CAIMAN_HYBRID_HELMET_GREY,
+        ItemTpl.HEADWEAR_RYST_BULLETPROOF_HELMET_BLACK,
+        ItemTpl.ARMOREDEQUIPMENT_RYST_FACE_SHIELD,
+        ItemTpl.MARKSMANRIFLE_SWORD_INTERNATIONAL_MK18_338_LM_MARKSMAN_RIFLE,
+        ItemTpl.AMMO_86X70_FMJ,
+        ItemTpl.AMMO_86X70_AP,
+        ItemTpl.AMMO_762X35_AP,
+        ItemTpl.AMMO_556X45_SSA_AP,
+        ItemTpl.AMMO_762X39_MAI_AP,
+        ItemTpl.BACKPACK_EBERLESTOCK_G2_GUNSLINGER_II_BACKPACK_DRY_EARTH,
+        ItemTpl.ARMOR_NFM_THOR_INTEGRATED_CARRIER_BODY,
+        ItemTpl.FACECOVER_TAGILLAS_WELDING_MASK_UBEY,
+        ItemTpl.FACECOVER_TAGILLAS_WELDING_MASK_GORILLA,
+        ItemTpl.DRINK_BOTTLE_OF_TARKOVSKAYA_VODKA_BAD,
+        ItemTpl.ASSAULTRIFLE_FN_SCARH_762X51_ASSAULT_RIFLE_FDE,
+        ItemTpl.GRENADE_RGN_HAND,
+        ItemTpl.ASSAULTRIFLE_FN_SCARH_762X51_ASSAULT_RIFLE,
+        ItemTpl.GRENADE_RGO_HAND,
+        ItemTpl.AMMO_545X39_7N40,
+        ItemTpl.AMMO_9X39_PAB9,
+        ItemTpl.ARMBAND_ALPHA,
+        ItemTpl.ARMBAND_DEADSKUL,
+        ItemTpl.ARMBAND_TRAIN_HARD,
+        ItemTpl.ARMBAND_KIBA_ARMS,
+        ItemTpl.ARMBAND_RFARMY,
+        ItemTpl.ARMBAND_UNTAR,
+        ItemTpl.BACKPACK_SANTAS_BAG,
+        ItemTpl.SIGNALPISTOL_ZID_SP81_26X75_SIGNAL_PISTOL,
+        ItemTpl.FLARE_RSP30_REACTIVE_SIGNAL_CARTRIDGE_RED,
+        ItemTpl.AMMO_26X75_GREEN,
+        ItemTpl.AMMO_26X75_RED,
+        ItemTpl.REVOLVER_MILKOR_M32A1_MSGL_40MM_GRENADE_LAUNCHER,
+        ItemTpl.SNIPERRIFLE_ACCURACY_INTERNATIONAL_AXMC_338_LM_BOLTACTION_SNIPER_RIFLE,
+        ItemTpl.FACECOVER_DEATH_KNIGHT_MASK,
+        ItemTpl.FACECOVER_BIG_PIPES_SMOKING_PIPE,
+        ItemTpl.LAUNCHER_GP25_KOSTYOR_40MM_UNDERBARREL_GRENADE,
+        ItemTpl.RADIOTRANSMITTER_DIGITAL_SECURE_DSP_RADIO_TRANSMITTER,
+        ItemTpl.AMMO_26X75_AG,
+        ItemTpl.LAUNCHER_M203_40MM_UNDERBARREL_GRENADE,
+        ItemTpl.BARTER_MICROCONTROLLER_BOARD,
+        ItemTpl.BARTER_FARFORWARD_GPS_SIGNAL_AMPLIFIER_UNIT,
+        ItemTpl.BARTER_ADVANCED_CURRENT_CONVERTER,
+        ItemTpl.INFO_SILICON_OPTOELECTRONIC_INTEGRATED_CIRCUITS_TEXTBOOK,
+        ItemTpl.INFO_ADVANCED_ELECTRONIC_MATERIALS_TEXTBOOK,
+        ItemTpl.BACKPACK_TASMANIAN_TIGER_TROOPER_35_BACKPACK_KHAKI,
+        ItemTpl.KEY_BACKUP_HIDEOUT,
+        ItemTpl.SPECITEM_RADIO_REPEATER,
+        ItemTpl.KEY_PRIMORSKY_4648_SKYBRIDGE,
+        ItemTpl.SPECIALSCOPE_ARMASIGHT_ZEUSPRO_640_28X50_30HZ_THERMAL_SCOPE,
+        ItemTpl.ASSAULTCARBINE_TOKAREV_AVT40_762X54R_AUTOMATIC_RIFLE,
+        ItemTpl.MACHINEGUN_KALASHNIKOV_PKM_762X54R_MACHINE_GUN,
+        ItemTpl.SPECIALSCOPE_SIG_SAUER_ECHO1_12X30MM_30HZ_THERMAL_REFLEX_SCOPE,
+        ItemTpl.AMMOBOX_127X55_PS12B_10RND,
+        ItemTpl.AMMOBOX_86X70_AP_20RND,
+        ItemTpl.AMMOBOX_762X54R_BS_20RND,
+        ItemTpl.AMMOBOX_762X51_M993_20RND,
+        ItemTpl.AMMOBOX_762X39_MAI_AP_20RND,
+        ItemTpl.AMMOBOX_9X39_BP_20RND,
+        ItemTpl.AMMOBOX_556X45_SSA_AP_50RND,
+        ItemTpl.AMMOBOX_762X35_AP_50RND,
+        ItemTpl.AMMOBOX_545X39_7N40_30RND,
+        ItemTpl.AMMOBOX_57X28_SS190_50RND,
+        ItemTpl.AMMOBOX_46X30_AP_SX_40RND,
+        ItemTpl.AMMOBOX_9X21_BT_30RND,
+        ItemTpl.AMMOBOX_45ACP_AP_50RND,
+        ItemTpl.AMMOBOX_9X19_PBP_50RND,
+        ItemTpl.AMMOBOX_12G_AP20_25RND,
+        ItemTpl.AMMOBOX_762X39_BP_20RND,
+        ItemTpl.ARMORPLATE_GRANIT_BR5_BALLISTIC_PLATE,
+        ItemTpl.ARMORPLATE_ESAPI_LEVEL_IV_BALLISTIC_PLATE,
+        ItemTpl.AMMO_762X35_CBJ,
+        ItemTpl.MACHINEGUN_KALASHNIKOV_PKP_762X54R_INFANTRY_MACHINE_GUN,
+        ItemTpl.CULTISTAMULET_SACRED_AMULET,
+        ItemTpl.KEY_RUSTED_BLOODY,
+        ItemTpl.ASSAULTCARBINE_SR3M_9X39_COMPACT_ASSAULT_RIFLE,
+        ItemTpl.MACHINEGUN_DEGTYAREV_RPDN_762X39_MACHINE_GUN,
+        ItemTpl.ASSAULTRIFLE_SIG_MCXSPEAR_68X51_ASSAULT_RIFLE,
+        ItemTpl.AMMO_68X51_HYBRID,
+        ItemTpl.ARMORPLATE_GRANIT_4RS_BALLISTIC_PLATES_BACK,
+        ItemTpl.ARMORPLATE_GRANIT_BR4_BALLISTIC_PLATE,
+        ItemTpl.ARMORPLATE_SAPI_LEVEL_III_BALLISTIC_PLATE,
+        ItemTpl.ARMORPLATE_GRANIT_4_BALLISTIC_PLATES_BACK,
+        ItemTpl.ARMORPLATE_GRANIT_4_BALLISTIC_PLATE_FRONT,
+        ItemTpl.ARMORPLATE_GRANIT_4RS_BALLISTIC_PLATE_FRONT,
+        ItemTpl.ARMORPLATE_KORUNDVM_BALLISTIC_PLATES_FRONT,
+        ItemTpl.ARMORPLATE_KORUNDVMK_BALLISTIC_PLATES_FRONT,
+        ItemTpl.ARMORPLATE_TALLCOM_GUARDIAN_BALLISTIC_PLATE,
+        ItemTpl.ARMORPLATE_NESCO_4400SAMC_BALLISTIC_PLATE,
+        ItemTpl.ARMORPLATE_KIBA_ARMS_STEEL_BALLISTIC_PLATE,
+        ItemTpl.ARMORPLATE_CULT_LOCUST_BALLISTIC_PLATE,
+        ItemTpl.ARMORPLATE_CULT_TERMITE_BALLISTIC_PLATE,
+        ItemTpl.ARMORPLATE_GAC_3S15M_BALLISTIC_PLATE,
+        ItemTpl.ARMORPLATE_GAC_4SSS2_BALLISTIC_PLATE,
+        ItemTpl.ARMORPLATE_KITECO_SCIV_SA_BALLISTIC_PLATE,
+        ItemTpl.AMMOBOX_762X35_CBJ_50RND,
+        ItemTpl.AMMOBOX_762X35_M62_50RND,
+        ItemTpl.AMMOBOX_762X35_VMAX_50RND,
+        ItemTpl.AMMOBOX_762X35_FMJ_50RND,
+        ItemTpl.AMMOBOX_762X35_WHISPER_50RND,
+        ItemTpl.AMMOBOX_86X70_FMJ_20RND,
+        ItemTpl.AMMOBOX_86X70_TACX_20RND,
+        ItemTpl.AMMOBOX_86X70_UCW_20RND,
+        ItemTpl.AMMOBOX_9X33R_FMJ_25RND,
+        ItemTpl.AMMOBOX_9X33R_HP_25RND,
+        ItemTpl.AMMOBOX_9X33R_JHP_25RND,
+        ItemTpl.AMMOBOX_9X33R_SP_25RND,
+        ItemTpl.AMMOBOX_366TKM_FMJ_20RND,
+        ItemTpl.AMMOBOX_366TKM_APM_20RND,
+        ItemTpl.AMMOBOX_366TKM_GEKSA_20RND,
+        ItemTpl.AMMOBOX_366TKM_EKO_20RND,
+        ItemTpl.AMMOBOX_45ACP_HYDRASHOK_50RND,
+        ItemTpl.AMMOBOX_45ACP_LASERMATCH_50RND,
+        ItemTpl.AMMOBOX_45ACP_FMJ_50RND,
+        ItemTpl.AMMOBOX_45ACP_RIP_50RND,
+        ItemTpl.AMMOBOX_127X55_PS12_10RND,
+        ItemTpl.AMMOBOX_127X55_PS12A_10RND,
+        ItemTpl.AMMOBOX_12G_525MM_25RND,
+        ItemTpl.AMMOBOX_12G_EXPRESS_25RND,
+        ItemTpl.AMMOBOX_12G_7MM_25RND,
+        ItemTpl.AMMOBOX_12G_MAGNUM_25RND,
+        ItemTpl.AMMOBOX_12G_DUALSABOT_25RND,
+        ItemTpl.AMMOBOX_12G_PIRANHA_25RND,
+        ItemTpl.AMMOBOX_12G_FTX_25RND,
+        ItemTpl.AMMOBOX_12G_GRIZZLY_40_25RND,
+        ItemTpl.AMMOBOX_12G_POLEVA3_25RND,
+        ItemTpl.AMMOBOX_12G_POLEVA6U_25RND,
+        ItemTpl.AMMOBOX_12G_50_BMG_25RND,
+        ItemTpl.AMMOBOX_12G_SLUG_25RND,
+        ItemTpl.AMMOBOX_12G_FLECHETTE_25RND,
+        ItemTpl.AMMOBOX_12G_CSP_25RND,
+        ItemTpl.AMMOBOX_12G_SFORMANCE_25RND,
+        ItemTpl.AMMOBOX_20G_56MM_25RND,
+        ItemTpl.AMMOBOX_20G_62MM_25RND,
+        ItemTpl.AMMOBOX_20G_73MM_25RND,
+        ItemTpl.AMMOBOX_20G_75MM_25RND,
+        ItemTpl.AMMOBOX_20G_DEVASTATOR_25RND,
+        ItemTpl.AMMOBOX_20G_STAR_25RND,
+        ItemTpl.AMMOBOX_20G_POLEVA3_25RND,
+        ItemTpl.AMMOBOX_20G_POLEVA6U_25RND,
+        ItemTpl.AMMOBOX_23X75_SHRAP10_5RND,
+        ItemTpl.AMMOBOX_23X75_SHRAP25_5RND,
+        ItemTpl.AMMOBOX_23X75_BARRIKADA_5RND,
+        ItemTpl.AMMOBOX_23X75_ZVEZDA_5RND,
+        ItemTpl.AMMOBOX_46X30_ACTION_SX_40RND,
+        ItemTpl.AMMOBOX_46X30_FMJ_SX_40RND,
+        ItemTpl.AMMOBOX_46X30_SUBSONIC_SX_40RND,
+        ItemTpl.AMMOBOX_556X45_FMJ_50RND,
+        ItemTpl.AMMOBOX_556X45_HP_50RND,
+        ItemTpl.AMMOBOX_556X45_M855A1_50RND,
+        ItemTpl.AMMOBOX_556X45_M856_50RND,
+        ItemTpl.AMMOBOX_556X45_M856A1_50RND,
+        ItemTpl.AMMOBOX_556X45_M995_50RND,
+        ItemTpl.AMMOBOX_556X45_RRLP_50RND,
+        ItemTpl.AMMOBOX_556X45_SOST_50RND,
+        ItemTpl.AMMOBOX_57X28_L191_50RND,
+        ItemTpl.AMMOBOX_57X28_R37F_50RND,
+        ItemTpl.AMMOBOX_57X28_R37X_50RND,
+        ItemTpl.AMMOBOX_57X28_SB193_50RND,
+        ItemTpl.AMMOBOX_57X28_SS197SR_50RND,
+        ItemTpl.AMMOBOX_57X28_SS198LF_50RND,
+        ItemTpl.AMMOBOX_762X25TT_FMJ43_25RND,
+        ItemTpl.AMMOBOX_762X25TT_LRN_25RND,
+        ItemTpl.AMMOBOX_762X25TT_LRNPC_25RND,
+        ItemTpl.AMMOBOX_762X25TT_AKBS_25RND,
+        ItemTpl.AMMOBOX_762X25TT_P_25RND,
+        ItemTpl.AMMOBOX_762X25TT_PST_25RND,
+        ItemTpl.AMMOBOX_762X25TT_PT_25RND,
+        ItemTpl.AMMOBOX_762X51_M61_20RND,
+        ItemTpl.AMMOBOX_762X51_M62_20RND,
+        ItemTpl.AMMOBOX_762X51_M80_20RND,
+        ItemTpl.AMMOBOX_762X51_ULTRA_NOSLER_20RND,
+        ItemTpl.AMMOBOX_762X51_BCP_FMJ_20RND,
+        ItemTpl.AMMOBOX_762X51_TCW_SP_20RND,
+        ItemTpl.AMMOBOX_762X54R_BT_20RND,
+        ItemTpl.AMMOBOX_762X54R_LPS_20RND,
+        ItemTpl.AMMOBOX_762X54R_PS_20RND,
+        ItemTpl.AMMOBOX_762X54R_T46M_20RND,
+        ItemTpl.AMMOBOX_9X19_AP_63_50RND,
+        ItemTpl.AMMOBOX_9X19_GT_50RND,
+        ItemTpl.AMMOBOX_9X19_LUGER_CCI_50RND,
+        ItemTpl.AMMOBOX_9X19_QUAKEMAKER_50RND,
+        ItemTpl.AMMOBOX_9X19_PSO_50RND,
+        ItemTpl.AMMOBOX_9X19_PST_50RND,
+        ItemTpl.AMMOBOX_9X21_P_30RND,
+        ItemTpl.AMMOBOX_9X21_PS_30RND,
+        ItemTpl.AMMOBOX_9X21_PE_30RND,
+        ItemTpl.AMMOBOX_9X39_PAB9_20RND,
+        ItemTpl.AMMOBOX_9X39_SP5_20RND,
+        ItemTpl.AMMOBOX_9X39_SP6_20RND,
+        ItemTpl.AMMOBOX_9X39_SPP_20RND,
+        ItemTpl.AMMOBOX_545X39_PPBS_120RND,
+        ItemTpl.AMMOBOX_9X18PM_BZHT_50RND,
+        ItemTpl.AMMOBOX_9X18PM_P_50RND,
+        ItemTpl.AMMOBOX_9X18PM_PBM_50RND,
+        ItemTpl.AMMOBOX_9X18PM_PPT_50RND,
+        ItemTpl.AMMOBOX_9X18PM_PPE_50RND,
+        ItemTpl.AMMOBOX_9X18PM_PRS_50RND,
+        ItemTpl.AMMOBOX_9X18PM_PS_PPO_50RND,
+        ItemTpl.AMMOBOX_9X18PM_PSV_50RND,
+        ItemTpl.AMMOBOX_9X18PM_PSO_50RND,
+        ItemTpl.AMMOBOX_9X18PM_PST_50RND,
+        ItemTpl.AMMOBOX_9X18PM_RG028_50RND,
+        ItemTpl.AMMOBOX_9X18PM_SP7_50RND,
+        ItemTpl.AMMOBOX_9X18PM_SP8_50RND,
+        ItemTpl.AMMOBOX_9X18PM_PSTM_50RND,
+        ItemTpl.AMMOBOX_556X45_FMJ_100RND,
+        ItemTpl.AMMOBOX_556X45_HP_100RND,
+        ItemTpl.AMMOBOX_556X45_M855_100RND,
+        ItemTpl.AMMOBOX_556X45_M855A1_100RND,
+        ItemTpl.AMMOBOX_556X45_M856_100RND,
+        ItemTpl.AMMOBOX_556X45_M856A1_100RND,
+        ItemTpl.AMMOBOX_556X45_M995_100RND,
+        ItemTpl.AMMOBOX_556X45_RRLP_100RND,
+        ItemTpl.AMMOBOX_556X45_SOST_100RND,
+        ItemTpl.AMMOBOX_556X45_SSA_AP_100RND,
+        ItemTpl.FACECOVER_ATOMIC_DEFENSE_CQCM_UP_ARMORED_BALLISTIC_MASK_BLACK,
+        ItemTpl.AMMOBOX_545X39_7N40_120RND,
+        ItemTpl.HEADWEAR_DIAMOND_AGE_NEOSTEEL_HIGH_CUT_HELMET_BLACK,
+        ItemTpl.FACECOVER_DEATH_SHADOW_LIGHTWEIGHT_ARMORED_MASK,
+        ItemTpl.HEADWEAR_NPP_KLASS_TOR2_HELMET_OLIVE_DRAB,
+        ItemTpl.ARMOREDEQUIPMENT_NPP_KLASS_TOR2_HELMET_FACE_SHIELD,
+        ItemTpl.AMMOBOX_9X21_7U4_30RND,
+        ItemTpl.AMMOBOX_9X21_7N42_30RND,
+        ItemTpl.AMMOBOX_9X39_FMJ_20RND,
+        ItemTpl.ARMORPLATE_KORUNDVM_BALLISTIC_PLATE_BACK,
+        ItemTpl.ARMORPLATE_KORUNDVMK_BALLISTIC_PLATE_BACK,
+        ItemTpl.KNIFE_UNITED_CUTLERY_M48_TACTICAL_KUKRI,
+        ItemTpl.MARKOFUNKNOWN_MARK_OF_THE_UNHEARD,
+        ItemTpl.ARMBAND_OF_THE_UNHEARD,
+        ItemTpl.INFO_DECRYPTED_FLASH_DRIVE,
+        ItemTpl.INFO_DOCUMENTS_WITH_DECRYPTED_DATA,
+        ItemTpl.KNIFE_APOK_TACTICAL_WASTELAND_GLADIUS,
+        ItemTpl.ARMBAND_ARENA,
+        ItemTpl.SECURE_CONTAINER_THETA,
+        ItemTpl.KEY_SHATUNS_HIDEOUT,
+        ItemTpl.KEY_GRUMPYS_HIDEOUT,
+        ItemTpl.KEY_VORONS_HIDEOUT,
+        ItemTpl.KEY_LEONS_HIDEOUT,
+        ItemTpl.SPECITEM_THE_EYE_MORTAR_STRIKE_SIGNALING_DEVICE,
+        ItemTpl.BARTER_LEGA_MEDAL,
+        ItemTpl.BARTER_LOCKED_EQUIPMENT_CRATE_RARE,
+        ItemTpl.BARTER_LOCKED_WEAPON_CRATE_RARE,
+        ItemTpl.BARTER_LOCKED_SUPPLY_CRATE_RARE,
+        ItemTpl.BARTER_LOCKED_VALUABLES_CRATE_RARE,
+        ItemTpl.RANDOMLOOTCONTAINER_ARENA_GEARCRATE_BLUE_OPEN,
+        ItemTpl.RANDOMLOOTCONTAINER_ARENA_WEAPONCRATE_BLUE_OPEN,
+        ItemTpl.RANDOMLOOTCONTAINER_ARENA_JUNKCRATE_BLUE_OPEN,
+        ItemTpl.RANDOMLOOTCONTAINER_ARENA_JEWELRYCRATE_BLUE_OPEN,
+        ItemTpl.SECURE_CONTAINER_GAMMA_TUE,
+        ItemTpl.BARTER_DOGTAG_BEAR_EOD,
+        ItemTpl.BARTER_DOGTAG_BEAR_TUE,
+        ItemTpl.BARTER_DOGTAG_USEC_EOD,
+        ItemTpl.BARTER_DOGTAG_USEC_TUE,
+        ItemTpl.PLANTINGKITS_TRIPWIRE_INSTALLATION_KIT,
+        ItemTpl.CONTAINER_STREAMER_ITEM_CASE,
+        ItemTpl.FLARE_RSP30_REACTIVE_SIGNAL_CARTRIDGE_SPECIAL_YELLOW,
+        ItemTpl.BARTER_RADAR_STATION_SPARE_PARTS,
+        ItemTpl.BARTER_KOSA_UAV_ELECTRONIC_JAMMING_DEVICE,
+        ItemTpl.BARTER_GARY_ZONT_PORTABLE_ELECTRONIC_WARFARE_DEVICE,
+        ItemTpl.SHOTGUN_MPS_AUTO_ASSAULT12_GEN_1_12GA_AUTOMATIC,
+        ItemTpl.SHOTGUN_MPS_AUTO_ASSAULT12_GEN_2_12GA_AUTOMATIC,
+        ItemTpl.RANDOMLOOTCONTAINER_EVENT_CONTAINER_CONTRABAND_MAIN,
+        ItemTpl.BARTER_CONTRABAND_BOX,
+        ItemTpl.BARTER_SEALED_BOX,
+        ItemTpl.RANDOMLOOTCONTAINER_EVENT_CONTAINER_CONTRABAND_FAKE,
+        ItemTpl.BARTER_LOCKED_CASE,
     };
 }

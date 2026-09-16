@@ -2,6 +2,7 @@ using SPTarkov.DI.Annotations;
 using SPTarkov.Common.Models.Logging;
 using SPTarkov.Server.Core.Models.Spt.Tables;
 using SPTarkov.Server.Core.Models.Common;
+using SPTarkov.Server.Core.Models.Enums;
 using Softcore.Config;
 
 namespace Softcore.Changers;
@@ -51,7 +52,7 @@ public class PriceRebalanceChanger(
         var handbookItems = handbook.Items;
 
         // Example: fix Bitcoin price
-        var bitcoinId = (MongoId)"59faff1d86f7746c51718c9c";
+        var bitcoinId = ItemTpl.BARTER_PHYSICAL_BITCOIN;
         var bitcoinEntry = handbookItems.FirstOrDefault(h => h.Id == bitcoinId);
         if (bitcoinEntry != null)
         {
