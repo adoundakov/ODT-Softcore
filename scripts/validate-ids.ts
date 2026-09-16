@@ -4,10 +4,12 @@
  * ID Validation Script
  *
  * Extracts all MongoDB IDs from TypeScript asset files and maps them to
- * ItemTpl constants from SPT's server-csharp repository.
+ * ItemTpl/BaseClasses/QuestTpl constants from SPT's server-csharp repository.
+ * Names come from the server's English locale so the CSV is human-readable.
  *
  * Usage: npx tsx scripts/validate-ids.ts
- * Output: scripts/id-mapping.csv
+ *        SPT_REF=4.1.5 npx tsx scripts/validate-ids.ts   # pin to a different tag/branch
+ * Output: scripts/id-mapping.csv, scripts/id-mapping.json
  */
 
 import fs from 'fs';
@@ -15,6 +17,13 @@ import path from 'path';
 
 // MongoDB ID pattern: 24 character hexadecimal string
 const MONGO_ID_REGEX = /["']([a-f0-9]{24})["']/gi;
+
+// Git ref (tag or branch) of SP-Tushonka/server-csharp to read enums and locales from.
+// Pin to the SPT version the C# mod targets; `main` is the next major and may not match.
+const SPT_REF = process.env.SPT_REF ?? '4.1.5';
+const SPT_RAW_BASE = `https://raw.githubusercontent.com/SP-Tushonka/server-csharp/${SPT_REF}`;
+const SPT_ENUMS_PATH = 'Libraries/SPTushonka.Server.Core/Models/Enums';
+const SPT_LOCALE_PATH = 'Libraries/SPTushonka.Server.Assets/SPT_Data/database/locales/global/en.json';
 
 interface IdMapping {
   tsId: string;
@@ -62,9 +71,9 @@ function extractMongoIds(): Set<string> {
  * Fetch enum file from GitHub and parse MongoId constants
  */
 async function fetchEnumMap(fileName: string, prefix: string): Promise<Map<string, string>> {
-  const url = `https://raw.githubusercontent.com/sp-tarkov/server-csharp/main/Libraries/SPTarkov.Server.Core/Models/Enums/${fileName}`;
+  const url = `${SPT_RAW_BASE}/${SPT_ENUMS_PATH}/${fileName}`;
 
-  console.log(`Fetching ${fileName} from GitHub...`);
+  console.log(`Fetching ${fileName} from GitHub (${SPT_REF})...`);
   const response = await fetch(url);
 
   if (!response.ok) {
@@ -116,35 +125,38 @@ async function fetchAllEnums(): Promise<Map<string, string>> {
 }
 
 /**
- * Query SPT database API for item name
+ * Fetch the server's English locale. Item names are keyed `<id> Name`;
+ * handbook categories (which have no enum) are keyed by bare `<id>`.
  */
-async function getItemName(id: string): Promise<string> {
-  const url = `https://db.sp-tarkov.com/api/item?id=${id}&locale=en`;
+async function fetchLocale(): Promise<Record<string, string>> {
+  const url = `${SPT_RAW_BASE}/${SPT_LOCALE_PATH}`;
 
-  try {
-    const response = await fetch(url);
+  console.log(`Fetching en.json locale from GitHub (${SPT_REF})...`);
+  const response = await fetch(url);
 
-    if (!response.ok) {
-      return 'UNKNOWN';
-    }
-
-    const data = await response.json();
-    return data?.name || data?._props?.Name || 'UNKNOWN';
-  } catch (error) {
-    console.warn(`Failed to fetch name for ${id}: ${error}`);
-    return 'UNKNOWN';
+  if (!response.ok) {
+    throw new Error(`Failed to fetch locale: ${response.statusText}`);
   }
+
+  const locale = (await response.json()) as Record<string, string>;
+  console.log(`Parsed ${Object.keys(locale).length} locale entries\n`);
+
+  return locale;
+}
+
+function lookupName(id: string, locale: Record<string, string>): string {
+  return locale[`${id} Name`] ?? locale[id] ?? 'UNKNOWN';
 }
 
 /**
- * Build complete mapping (skip name lookup for now - API not reliable)
+ * Build complete mapping
  */
-async function buildMapping(ids: Set<string>, enumMap: Map<string, string>): Promise<IdMapping[]> {
+function buildMapping(ids: Set<string>, enumMap: Map<string, string>, locale: Record<string, string>): IdMapping[] {
   const mappings: IdMapping[] = [];
 
   for (const id of ids) {
     const constant = enumMap.get(id) || 'NOT_FOUND';
-    mappings.push({ tsId: id, name: '', constant });
+    mappings.push({ tsId: id, name: lookupName(id, locale), constant });
   }
 
   console.log(`Built ${mappings.length} mappings`);
@@ -159,7 +171,7 @@ function writeCsv(mappings: IdMapping[], outputPath: string) {
   const header = 'TS_ID,Name,Constant\n';
   const rows = mappings
     .sort((a, b) => a.constant.localeCompare(b.constant))
-    .map(m => `${m.tsId},,${m.constant}`)
+    .map(m => `${m.tsId},"${m.name.replace(/"/g, '""')}",${m.constant}`)
     .join('\n');
 
   fs.writeFileSync(outputPath, header + rows, 'utf-8');
@@ -212,7 +224,8 @@ async function main() {
 
     const ids = extractMongoIds();
     const enumMap = await fetchAllEnums();
-    const mappings = await buildMapping(ids, enumMap);
+    const locale = await fetchLocale();
+    const mappings = buildMapping(ids, enumMap, locale);
 
     const csvPath = path.join(process.cwd(), 'scripts', 'id-mapping.csv');
     const jsonPath = path.join(process.cwd(), 'scripts', 'id-mapping.json');
