@@ -3,7 +3,7 @@
 BETA VERSION. WORK IN PROGRESS. Looking for community feedback. Use at your own risk. New profile highly recommended. 
 
 **Version 4.1.0 targets SPT 4.1.5** (C# server mod in `csharp/`; the `SPT411` branch name predates the 4.1.5 retarget).
-The TypeScript sources in `src/` are the SPT 3.11 mod and are kept as the reference for the port. Only the economy and
+The TypeScript sources in `src/` are the SPT 3.11 mod and are kept as the reference for the port. Only the economy, trader and
 crafting features are ported so far — see `csharp/` and the Configuration section below.
 
 Build: `cd csharp && dotnet build -c Release` → `csharp/Softcore/ReleaseZip/DukeWendigo-Softcore-4.1.0.zip`, unzip into your SPT folder.
@@ -31,6 +31,14 @@ Trully immersive experience.
 Hideout crafts are great and usefull (toilet paper craft nerfed, was too OP).
 
 Leveling traders and crafting is your only hope of survival. 
+
+## Trader changes:
+- Traders pay more when you sell to them. At loyalty level 1: Prapor 50% → 60%, Therapist 63% → 64%, Ragman 62% → 63%, Jaeger 60% → 62%, Mechanic 56% → 61%, Peacekeeper 45% → 58%, Skier 49% → 59%. Every further loyalty level adds 5%, so at LL4 Prapor pays 75%.
+- Therapist buys only meds, medical supplies and household goods (no other barter items). Ragman buys valuables, Skier buys info items.
+- Pacifist Fence: only meds, barter items, food and info items, no weapon or armor presets, prices at handbook value (the 6-karma discount assort is cheaper). Fence's per-category rouble price caps are left as vanilla, so the priciest items (LEDX, GPU, ...) never show up there.
+- Reasonably priced hideout cases at Therapist, Peacekeeper and Skier, a 10x cheaper LEDX dogtag barter and a new Golden neck chain barter at Therapist (10 dogtags lvl 10+).
+- Bigger trader buy limits (2x by default).
+- Optional: Skier trades in Euros (off by default, see `skierUsesEuros`).
 
 ## Hideout features:
 - 100x faster hideout construction.
@@ -107,6 +115,27 @@ SPT server dashboard's config editor rewrites it through `System.Text.Json`. Cha
 | `fleaPricesIncreased` | `1.3` | Slightly increase flea prices to stimulate looting and crafting instead of buying everything on flea. With barter economy and variance enabled you still get many great trades below actual item value. Hustle! |
 | `fleaPristineItems` | `true` | Only pristine-condition items are offered on flea. |
 | `onlyFoundInRaidItemsAllowedForBarters` | `true` | Be a man, don't change this. Disabling it is borderline cheating: infinite money because of the variance changes. |
+
+### `traderChanges`
+| Option | Default | Description |
+|---|---|---|
+| `enabled` | `true` | Master toggle for all trader changes below. |
+| `betterSalesToTraders` | `true` | Traders pay more when you sell to them. At loyalty level 1: Prapor 50% → 60%, Therapist 63% → 64%, Ragman 62% → 63%, Jaeger 60% → 62%, Mechanic 56% → 61%, Peacekeeper 45% → 58%, Skier 49% → 59%. Every further loyalty level adds 5%, so at LL4 Prapor pays 75%. Fence and Ref are unchanged. |
+| `alternativeCategories` | `true` | Nerfs Therapist's buying categories (instead of all barter items she buys only medical supplies and household goods, good for trader diversity), allows Ragman to buy valuables and Skier to buy info items. |
+| `reasonablyPricedCases` | `true` | Rebalances the hideout case barters (Item Case, THICC Item Case, Lucky Scav Junk Box, Medicine Case, Weapon Case) to fair and reasonable prices, changes the LEDX dogtag barter and adds a Golden neck chain dogtag barter at Therapist. |
+| `skierUsesEuros` | `false` | EXPERIMENTAL. Makes Skier use Euros for all trades and quest rewards, mostly for fun and diversity. Adjusts assorts and loyalty levels accordingly. Off by default because existing profiles need their Skier sales sum adjusted by hand: in `user/profiles/<id>.json` find `TradersInfo` → `58330581ace78e27b8b10cee` and divide `salesSum` by the EUR handbook price (134 on 4.1.5), dropping the remainder. Profiles started with this enabled need nothing. |
+
+#### `traderChanges.pacifistFence`
+| Option | Default | Description |
+|---|---|---|
+| `enabled` | `true` | To go along with the theme of this mod, Fence also sells only pacifist items. His prices depend on scav karma, so at 6 karma he sells items at almost the same price Therapist buys them from you. |
+| `numberOfFenceOffers` | `30` | Number of items in Fence's regular assort. The discount assort (6 karma) is twice that. |
+
+#### `traderChanges.biggerLimits`
+| Option | Default | Description |
+|---|---|---|
+| `enabled` | `true` | Multiply every trader item's buy limit (e.g. "3 per restock") by `multiplier`. |
+| `multiplier` | `2.0` | The multiplier. |
 
 ### `craftingChanges`
 | Option | Default | Description |
