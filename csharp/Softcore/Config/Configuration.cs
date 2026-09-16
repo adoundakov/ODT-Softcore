@@ -10,6 +10,13 @@ namespace Softcore.Config;
 /// <summary>Root of config/config.json.</summary>
 public class Configuration
 {
+    /// <summary>
+    /// Shown as the first line in the dashboard config editor, which has no other way to display
+    /// a description. Round-trips to disk; harmless.
+    /// </summary>
+    [JsonPropertyName("_note")]
+    public string Note { get; set; } = "Edits take effect after a server restart.";
+
     [JsonPropertyName("general")]
     public GeneralConfig General { get; set; } = new();
 

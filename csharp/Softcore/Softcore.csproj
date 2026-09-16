@@ -15,10 +15,15 @@
     <PackageReference Include="SPTushonka.Common" Version="4.1.5" />
     <PackageReference Include="SPTushonka.DI" Version="4.1.5" />
     <PackageReference Include="SPTushonka.Server.Core" Version="4.1.5" />
+    <!-- Dashboard config editor (IConfigEditorConfigProvider). Always loaded in-process by the server, no runtime risk. -->
+    <PackageReference Include="SPTushonka.Server.Web" Version="4.1.5" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="config\config.json">
+    <!-- The Web SDK auto-includes *.json as Content (copied under the source folder's case, "Config/").
+         Replace it with an explicit item so the output path is the lowercase "config/" ConfigRegistration expects. -->
+    <Content Remove="Config\config.json" />
+    <None Include="Config\config.json" TargetPath="config\config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
