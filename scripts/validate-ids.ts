@@ -84,7 +84,8 @@ async function fetchEnumMap(fileName: string, prefix: string): Promise<Map<strin
   const map = new Map<string, string>();
 
   // Parse lines like: public static readonly MongoId AMMO_127X108_B32 = new MongoId("5cde8864d7f00c0010373be1");
-  const enumRegex = /public static readonly MongoId (\w+) = new MongoId\("([a-f0-9]{24})"\);/g;
+  // The generated enum files wrap long declarations across lines, so allow whitespace around the id.
+  const enumRegex = /public static readonly MongoId (\w+) = new MongoId\(\s*"([a-f0-9]{24})"\s*\);/g;
   const matches = content.matchAll(enumRegex);
 
   for (const match of matches) {
