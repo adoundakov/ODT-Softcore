@@ -44,7 +44,15 @@ public class BarterEconomyConfig
     public MinMax OfferItemCount { get; set; } = new() { Min = 10, Max = 20 };
     public MinMax NonStackableCount { get; set; } = new() { Min = 1, Max = 2 };
     public int ItemCountMax { get; set; } = 2;
-    public bool UnbanBitcoinsForBarters { get; set; } = false;
+    public CurrencyDistributionConfig CurrencyDistribution { get; set; } = new();
+}
+
+// Percentage of cash offers listed in each currency; should add up to 100
+public class CurrencyDistributionConfig
+{
+    public int Rub { get; set; } = 33;
+    public int Eur { get; set; } = 33;
+    public int Usd { get; set; } = 34;
 }
 
 // Price rebalance settings

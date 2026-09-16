@@ -32,7 +32,7 @@
       "offerItemCount": { "min": 10, "max": 20 },
       "nonStackableCount": { "min": 1, "max": 2 },
       "itemCountMax": 2,
-      "unbanBitcoinsForBarters": false
+      "currencyDistribution": { "rub": 33, "eur": 33, "usd": 34 }
     },
     "otherFleaMarketChanges": {
       "enabled": true,

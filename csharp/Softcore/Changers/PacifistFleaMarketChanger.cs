@@ -34,10 +34,14 @@ public class PacifistFleaMarketChanger(
         {
             _logger.Info("[Softcore] Applying pacifist flea market restrictions...");
 
-            PacifistFleaMarket(config);
-            AllowWhitelistedItems(config.Whitelist);
-            AllowQuestKeys(config.QuestKeys);
-            AllowMarkedKeys(config.MarkedKeys);
+            PacifistFleaMarket();
+
+            if (config.Whitelist.Enabled)
+                AllowOnRagfair(FleaMarketData.Whitelist, config.Whitelist.PriceMultiplier, "whitelisted items");
+            if (config.QuestKeys.Enabled)
+                AllowOnRagfair(KeysData.QuestKeys, config.QuestKeys.PriceMultiplier, "quest keys");
+            if (config.MarkedKeys.Enabled)
+                AllowOnRagfair(KeysData.MarkedKeys, config.MarkedKeys.PriceMultiplier, "marked keys");
 
             _logger.Success("[Softcore] Pacifist flea market applied successfully");
         }
@@ -47,27 +51,27 @@ public class PacifistFleaMarketChanger(
         }
     }
 
-    private void PacifistFleaMarket(PacifistFleaMarketConfig config)
+    /// <summary>
+    /// Ban everything on flea except whitelisted handbook categories, plus every quest item.
+    /// Filtering is done by handbook category (not base class) on purpose — that is what the
+    /// original mod does and it is the grouping the flea UI actually uses.
+    /// </summary>
+    private void PacifistFleaMarket()
     {
         var items = _templateTable.Items;
-        var handbook = _templateTable.Handbook;
-        var ragfairConfig = _ragfairConfig;
-
         var whitelistedCategories = FleaMarketData.FleaListingsWhitelistHandbook;
+        var customBlacklist = _ragfairConfig.Dynamic.Blacklist.Custom;
 
-        int blacklistedCount = 0;
-
-        // Blacklist all items NOT in whitelisted handbook categories
-        foreach (var (itemId, item) in items)
+        var blacklistedCount = 0;
+        foreach (var handbookItem in _templateTable.Handbook.Items)
         {
-            var handbookEntry = handbook.Items.FirstOrDefault(h => h.Id == itemId);
-            if (handbookEntry == null)
-                continue;
+            var itemId = handbookItem.Id;
+            var isQuestItem = items.TryGetValue(itemId, out var item) && item.Properties?.QuestItem == true;
 
-            if (!whitelistedCategories.Contains(handbookEntry.ParentId))
+            if (!whitelistedCategories.Contains(handbookItem.ParentId) || isQuestItem)
             {
-                // Add to ragfair blacklist
-                ragfairConfig.Dynamic.Blacklist.Custom.Add(itemId);
+                // Better semantics than CanSellOnRagfair: the item is hidden from offers but stays usable
+                customBlacklist.Add(itemId);
                 blacklistedCount++;
             }
         }
@@ -75,93 +79,39 @@ public class PacifistFleaMarketChanger(
         _logger.Info($"[Softcore] Pacifist flea: blacklisted {blacklistedCount} items");
     }
 
-    private void AllowWhitelistedItems(EconomyTogglesConfig config)
+    /// <summary>
+    /// Re-allow a set of items on flea: remove them from the custom blacklist, mark them sellable
+    /// and scale their flea price.
+    /// </summary>
+    private void AllowOnRagfair(IEnumerable<MongoId> itemIds, double priceMultiplier, string label)
     {
-        if (!config.Enabled)
-            return;
-
         var items = _templateTable.Items;
         var prices = _templateTable.Prices;
-        var ragfairConfig = _ragfairConfig;
+        var customBlacklist = _ragfairConfig.Dynamic.Blacklist.Custom;
 
-        foreach (var itemId in FleaMarketData.Whitelist)
+        var allowedCount = 0;
+        foreach (var itemId in itemIds)
         {
-            // Remove from blacklist
-            ragfairConfig.Dynamic.Blacklist.Custom.Remove(itemId);
+            if (!items.TryGetValue(itemId, out var item))
+            {
+                _logger.Warning($"[Softcore] AllowOnRagfair ({label}): item {itemId} not found, skipping");
+                continue;
+            }
 
-            // Mark as sellable
-            if (items.TryGetValue(itemId, out var item) && item.Properties != null)
+            if (prices.TryGetValue(itemId, out var price))
+            {
+                prices[itemId] = Math.Round(price * priceMultiplier);
+            }
+
+            if (item.Properties != null)
             {
                 item.Properties.CanSellOnRagfair = true;
             }
 
-            // Apply price multiplier
-            if (prices.ContainsKey(itemId))
-            {
-                prices[itemId] = (int)Math.Round(prices[itemId] * config.PriceMultiplier);
-            }
+            customBlacklist.Remove(itemId);
+            allowedCount++;
         }
 
-        _logger.Info($"[Softcore] Whitelisted {FleaMarketData.Whitelist.Count} items with {config.PriceMultiplier}x multiplier");
-    }
-
-    private void AllowQuestKeys(EconomyTogglesConfig config)
-    {
-        if (!config.Enabled)
-            return;
-
-        var items = _templateTable.Items;
-        var prices = _templateTable.Prices;
-        var ragfairConfig = _ragfairConfig;
-
-        foreach (var keyId in KeysData.QuestKeys)
-        {
-            // Remove from blacklist
-            ragfairConfig.Dynamic.Blacklist.Custom.Remove(keyId);
-
-            // Mark as sellable
-            if (items.TryGetValue(keyId, out var item) && item.Properties != null)
-            {
-                item.Properties.CanSellOnRagfair = true;
-            }
-
-            // Apply price multiplier
-            if (prices.ContainsKey(keyId))
-            {
-                prices[keyId] = (int)Math.Round(prices[keyId] * config.PriceMultiplier);
-            }
-        }
-
-        _logger.Info($"[Softcore] Allowed {KeysData.QuestKeys.Count} quest keys with {config.PriceMultiplier}x multiplier");
-    }
-
-    private void AllowMarkedKeys(EconomyTogglesConfig config)
-    {
-        if (!config.Enabled)
-            return;
-
-        var items = _templateTable.Items;
-        var prices = _templateTable.Prices;
-        var ragfairConfig = _ragfairConfig;
-
-        foreach (var keyId in KeysData.MarkedKeys)
-        {
-            // Remove from blacklist
-            ragfairConfig.Dynamic.Blacklist.Custom.Remove(keyId);
-
-            // Mark as sellable
-            if (items.TryGetValue(keyId, out var item) && item.Properties != null)
-            {
-                item.Properties.CanSellOnRagfair = true;
-            }
-
-            // Apply price multiplier
-            if (prices.ContainsKey(keyId))
-            {
-                prices[keyId] = (int)Math.Round(prices[keyId] * config.PriceMultiplier);
-            }
-        }
-
-        _logger.Info($"[Softcore] Allowed {KeysData.MarkedKeys.Count} marked keys with {config.PriceMultiplier}x multiplier");
+        _logger.Info($"[Softcore] Allowed {allowedCount} {label} on flea with {priceMultiplier}x price multiplier");
     }
 }

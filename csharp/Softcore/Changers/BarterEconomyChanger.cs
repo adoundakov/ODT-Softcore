@@ -40,7 +40,7 @@ public class BarterEconomyChanger(
 
             DoBarterEconomy(config);
             AdjustCashOffers(config.CashOffersPercentage);
-            SetupRandomCurrencyDistribution();
+            SetupCurrencyDistribution(config.CurrencyDistribution);
             AdjustBarterPriceVariance(config.BarterPriceVariance);
             AdjustItemCountMax(config.ItemCountMax);
             AdjustOfferItemCount(config.OfferItemCount);
@@ -71,18 +71,31 @@ public class BarterEconomyChanger(
 
         foreach (var (itemId, item) in items)
         {
-            if (item.Type == "Item" &&
-                !IsOfBaseClasses(itemId, barterBlacklist) &&
-                item.Parent != BaseClasses.MONEY)
+            if (item.Type != "Item" ||
+                IsOfBaseClasses(itemId, barterBlacklist) ||
+                item.Parent == BaseClasses.MONEY)
             {
-                if (item.Properties?.QuestItem == true)
-                {
-                    fleaPrices[itemId] = 0;
-                }
-                else if (!item.Properties?.CanSellOnRagfair.GetValueOrDefault(false) ?? false)
-                {
-                    fleaPrices[itemId] = 0;
-                }
+                continue;
+            }
+
+            if (item.Properties?.QuestItem == true)
+            {
+                // Block quest items from being requested on flea
+                fleaPrices[itemId] = 0;
+            }
+            else if (item.Properties?.CanSellOnRagfair != true)
+            {
+                // Block every other shady item
+                fleaPrices[itemId] = 0;
+            }
+            else if (FleaMarketData.BSGBlacklist.Contains(itemId))
+            {
+                // Only reachable when another mod flipped CanSellOnRagfair on a BSG-blacklisted item
+                var name = _itemHelper.GetItemName(itemId);
+                if (string.IsNullOrEmpty(name))
+                    name = itemId;
+
+                _logger.Warning($"[Softcore] Item {name} can be bought on flea, don't use BSG blacklist unlockers with Barter Economy enabled!");
             }
         }
 
@@ -101,14 +114,14 @@ public class BarterEconomyChanger(
         _ragfairConfig.Dynamic.Barter.ChancePercent = 100 - cashOffersPercentage;
     }
 
-    private void SetupRandomCurrencyDistribution()
+    private void SetupCurrencyDistribution(CurrencyDistributionConfig distribution)
     {
-        // Set equal distribution across all three currencies for random selection
-        _ragfairConfig.Dynamic.OfferCurrencyChangePercent[ItemTpl.MONEY_ROUBLES] = 33;
-        _ragfairConfig.Dynamic.OfferCurrencyChangePercent[ItemTpl.MONEY_EUROS] = 33;
-        _ragfairConfig.Dynamic.OfferCurrencyChangePercent[ItemTpl.MONEY_DOLLARS] = 34;
+        // Which currency the cash offers (see AdjustCashOffers) are listed in. SPT default is 78/14/8.
+        _ragfairConfig.Dynamic.OfferCurrencyChangePercent[ItemTpl.MONEY_ROUBLES] = distribution.Rub;
+        _ragfairConfig.Dynamic.OfferCurrencyChangePercent[ItemTpl.MONEY_EUROS] = distribution.Eur;
+        _ragfairConfig.Dynamic.OfferCurrencyChangePercent[ItemTpl.MONEY_DOLLARS] = distribution.Usd;
 
-        _logger.Info("[Softcore] Currency distribution: 33% RUB, 33% EUR, 34% USD");
+        _logger.Info($"[Softcore] Currency distribution: {distribution.Rub}% RUB, {distribution.Eur}% EUR, {distribution.Usd}% USD");
     }
 
     private void AdjustBarterPriceVariance(int variancePercent)
