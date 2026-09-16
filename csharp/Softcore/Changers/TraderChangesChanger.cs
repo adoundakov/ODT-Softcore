@@ -3,6 +3,7 @@ using SPTarkov.Common.Models.Logging;
 using SPTarkov.Server.Core.Helpers.Items;
 using SPTarkov.Server.Core.Helpers.Profile;
 using SPTarkov.Server.Core.Models.Common;
+using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Spt.Config;
 using SPTarkov.Server.Core.Models.Enums;
 using SPTarkov.Server.Core.Models.Spt.Tables;
@@ -228,10 +229,152 @@ public class TraderChangesChanger(
         _logger.Success($"[Softcore] Pacifist Fence: {numberOfFenceOffers} offers, {fenceBlacklist.Count} base classes blacklisted");
     }
 
+    /// <summary>
+    /// Applies <see cref="TraderData.CaseAdjustments"/>, then <see cref="TraderData.CaseBarterSets"/>,
+    /// then <see cref="TraderData.CaseBarterAdds"/>. On clean 4.1.5 data nothing is skipped; a skip
+    /// means BSG moved a barter again.
+    /// </summary>
     private void DoReasonablyPricedCases()
     {
-        _logger.Info("[Softcore] Reasonably priced cases: not implemented yet");
+        var applied = 0;
+        var skipped = 0;
+
+        foreach (var adjust in TraderData.CaseAdjustments)
+        {
+            if (AdjustBarters(adjust)) applied++; else skipped++;
+        }
+
+        foreach (var set in TraderData.CaseBarterSets)
+        {
+            if (SetBarter(set)) applied++; else skipped++;
+        }
+
+        foreach (var add in TraderData.CaseBarterAdds)
+        {
+            AddBarter(add);
+            applied++;
+        }
+
+        _logger.Success($"[Softcore] Reasonably priced cases: {applied} applied, {skipped} skipped");
     }
+
+    private bool AdjustBarters(CaseBarterAdjust adjust)
+    {
+        var assort = _tradersTable.GetTrader(adjust.Trader)?.Assort;
+        var roots = assort == null ? [] : CaseRoots(assort, adjust.Item).ToList();
+        if (assort == null || roots.Count == 0)
+        {
+            _logger.Warning($"[Softcore] Barter for {ItemName(adjust.Item)} at {TraderName(adjust.Trader)} not found, skipping");
+            return false;
+        }
+
+        var touched = 0;
+        foreach (var (adjustmentTpl, callback) in adjust.Adjustments)
+        {
+            foreach (var root in roots)
+            {
+                if (!assort.BarterScheme.TryGetValue(root.Id, out var schemes)) continue;
+                if (!schemes.Any(scheme => scheme.Any(requirement => requirement.Template == adjustmentTpl))) continue;
+
+                // TS semantic: every requirement of the barter, not just the matching one
+                foreach (var requirement in schemes[0])
+                {
+                    callback(requirement);
+                }
+                touched++;
+            }
+        }
+
+        if (touched == 0)
+        {
+            _logger.Warning($"[Softcore] No barter for {ItemName(adjust.Item)} at {TraderName(adjust.Trader)} contains the adjusted items, skipping");
+            return false;
+        }
+
+        _logger.Info($"[Softcore] Adjusted {touched} {ItemName(adjust.Item)} barter(s) at {TraderName(adjust.Trader)}");
+        return true;
+    }
+
+    private bool SetBarter(CaseBarterSet set)
+    {
+        var assort = _tradersTable.GetTrader(set.Trader)?.Assort;
+        if (assort == null)
+        {
+            _logger.Warning($"[Softcore] Assort for trader {set.Trader} not found, skipping");
+            return false;
+        }
+
+        var wanted = set.Requirements.Select(requirement => requirement.Template).ToHashSet();
+        var match = CaseRoots(assort, set.Item).FirstOrDefault(root =>
+            assort.BarterScheme.TryGetValue(root.Id, out var schemes) &&
+            schemes[0].Select(requirement => requirement.Template).ToHashSet().SetEquals(wanted));
+
+        if (match != null)
+        {
+            assort.BarterScheme[match.Id] = [set.Requirements];
+            _logger.Info($"[Softcore] Set {ItemName(set.Item)} barter at {TraderName(set.Trader)}: {Describe(set.Requirements)}");
+            return true;
+        }
+
+        _logger.Warning($"[Softcore] Barter for {ItemName(set.Item)} at {TraderName(set.Trader)} not found, creating it at LL{set.LoyaltyLevel}");
+        CreateBarter(assort, set.Item, set.LoyaltyLevel, 1, set.Requirements);
+        return true;
+    }
+
+    private void AddBarter(CaseBarterAdd add)
+    {
+        var assort = _tradersTable.GetTrader(add.Trader)?.Assort;
+        if (assort == null)
+        {
+            _logger.Warning($"[Softcore] Assort for trader {add.Trader} not found, skipping");
+            return;
+        }
+
+        CreateBarter(assort, add.Item, add.LoyaltyLevel, add.BuyLimit, add.Requirements);
+        _logger.Info($"[Softcore] Added {ItemName(add.Item)} barter at {TraderName(add.Trader)} LL{add.LoyaltyLevel}: {Describe(add.Requirements)}");
+    }
+
+    /// <summary>
+    /// Same shape as the vanilla case barters (unlimited stack, per-restock buy limit). The id is minted
+    /// on every server start; that is fine because the live table is what trader resets clone from and
+    /// TraderPurchasePersisterService drops purchases whose assort id no longer exists.
+    /// </summary>
+    private static void CreateBarter(TraderAssort assort, MongoId tpl, int loyaltyLevel, int buyLimit, List<BarterScheme> requirements)
+    {
+        var root = new Item
+        {
+            Id = new MongoId(),
+            Template = tpl,
+            ParentId = "hideout",
+            SlotId = "hideout",
+            Upd = new Upd
+            {
+                UnlimitedCount = true,
+                StackObjectsCount = 9999999,
+                BuyRestrictionMax = buyLimit,
+                BuyRestrictionCurrent = 0,
+            },
+        };
+
+        assort.Items.Add(root);
+        assort.BarterScheme[root.Id] = [requirements];
+        assort.LoyalLevelItems[root.Id] = loyaltyLevel;
+    }
+
+    private static IEnumerable<Item> CaseRoots(TraderAssort assort, MongoId tpl) =>
+        assort.Items.Where(item => item.Template == tpl && item.ParentId == "hideout");
+
+    private string Describe(List<BarterScheme> requirements) =>
+        string.Join(" + ", requirements.Select(requirement => $"{requirement.Count} {ItemName(requirement.Template)}"));
+
+    private string ItemName(MongoId tpl)
+    {
+        var name = _itemHelper.GetItemName(tpl);
+        return string.IsNullOrEmpty(name) ? tpl.ToString() : name;
+    }
+
+    private string TraderName(MongoId traderId) =>
+        _tradersTable.GetTrader(traderId)?.Base.Nickname ?? traderId.ToString();
 
     private void DoSkierUsesEuros()
     {
