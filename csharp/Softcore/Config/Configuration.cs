@@ -23,6 +23,9 @@ public class Configuration
     [JsonPropertyName("economyOptions")]
     public EconomyOptionsConfig EconomyOptions { get; set; } = new();
 
+    [JsonPropertyName("traderChanges")]
+    public TraderChangesConfig TraderChanges { get; set; } = new();
+
     [JsonPropertyName("craftingChanges")]
     public CraftingChangesConfig CraftingChanges { get; set; } = new();
 
@@ -222,6 +225,77 @@ public class OtherFleaMarketChangesConfig
     /// </summary>
     [JsonPropertyName("onlyFoundInRaidItemsAllowedForBarters")]
     public bool OnlyFoundInRaidItemsAllowedForBarters { get; set; } = true;
+}
+
+public class TraderChangesConfig
+{
+    /// <summary>Master toggle for all trader changes below.</summary>
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>
+    /// Traders pay more when you sell to them. At loyalty level 1: Prapor 50% → 60%, Therapist 63% → 64%,
+    /// Ragman 62% → 63%, Jaeger 60% → 62%, Mechanic 56% → 61%, Peacekeeper 45% → 58%, Skier 49% → 59%.
+    /// Every further loyalty level adds 5%, so at LL4 Prapor pays 75%. Fence and Ref are unchanged.
+    /// </summary>
+    [JsonPropertyName("betterSalesToTraders")]
+    public bool BetterSalesToTraders { get; set; } = true;
+
+    /// <summary>
+    /// Nerfs Therapist's buying categories (instead of all barter items she buys only medical supplies
+    /// and household goods, good for trader diversity), allows Ragman to buy valuables and Skier to buy
+    /// info items.
+    /// </summary>
+    [JsonPropertyName("alternativeCategories")]
+    public bool AlternativeCategories { get; set; } = true;
+
+    [JsonPropertyName("pacifistFence")]
+    public PacifistFenceConfig PacifistFence { get; set; } = new();
+
+    /// <summary>
+    /// Rebalances the hideout case barters (Item Case, THICC Item Case, Lucky Scav Junk Box, Medicine
+    /// Case, Weapon Case) to fair and reasonable prices, changes the LEDX dogtag barter and adds a
+    /// Golden neck chain dogtag barter at Therapist.
+    /// </summary>
+    [JsonPropertyName("reasonablyPricedCases")]
+    public bool ReasonablyPricedCases { get; set; } = true;
+
+    /// <summary>
+    /// EXPERIMENTAL. Makes Skier use Euros for all trades and quest rewards, mostly for fun and diversity.
+    /// Adjusts assorts and loyalty levels accordingly. Off by default because existing profiles need
+    /// their Skier salesSum adjusted by hand: in your profile json find TradersInfo →
+    /// 58330581ace78e27b8b10cee and divide salesSum by the EUR handbook price (134 on 4.1.5), dropping
+    /// the remainder. Profiles started with this enabled need nothing.
+    /// </summary>
+    [JsonPropertyName("skierUsesEuros")]
+    public bool SkierUsesEuros { get; set; } = false;
+
+    [JsonPropertyName("biggerLimits")]
+    public BiggerLimitsConfig BiggerLimits { get; set; } = new();
+}
+
+public class PacifistFenceConfig
+{
+    /// <summary>
+    /// To go along with the theme of this mod, Fence also sells only pacifist items. His prices depend on
+    /// scav karma, so at 6 karma he sells items at almost the same price Therapist buys them from you.
+    /// </summary>
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>Number of items in Fence's regular assort. The discount assort (6 karma) is twice that.</summary>
+    [JsonPropertyName("numberOfFenceOffers")]
+    public int NumberOfFenceOffers { get; set; } = 30;
+}
+
+public class BiggerLimitsConfig
+{
+    /// <summary>Multiply every trader item's buy limit (e.g. "3 per restock") by <see cref="Multiplier"/>.</summary>
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    [JsonPropertyName("multiplier")]
+    public double Multiplier { get; set; } = 2.0;
 }
 
 public class CraftingChangesConfig

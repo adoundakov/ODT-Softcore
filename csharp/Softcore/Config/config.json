@@ -44,6 +44,21 @@
       "onlyFoundInRaidItemsAllowedForBarters": true
     }
   },
+  "traderChanges": {
+    "enabled": true,
+    "betterSalesToTraders": true,
+    "alternativeCategories": true,
+    "pacifistFence": {
+      "enabled": true,
+      "numberOfFenceOffers": 30
+    },
+    "reasonablyPricedCases": true,
+    "skierUsesEuros": false,
+    "biggerLimits": {
+      "enabled": true,
+      "multiplier": 2.0
+    }
+  },
   "craftingChanges": {
     "enabled": true,
     "craftingRebalance": true,

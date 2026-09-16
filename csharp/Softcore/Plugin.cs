@@ -16,6 +16,7 @@ public class Plugin(
     ISptLogger<Plugin> logger,
     Configuration config,
     EconomyOptionsChanger economyChanger,
+    TraderChangesChanger traderChanger,
     CraftingChangesChanger craftingChanger) : IOnLoad
 {
     public Task OnLoadAsync(CancellationToken cancellationToken)
@@ -34,8 +35,10 @@ public class Plugin(
         logger.Success("[Softcore] Configuration loaded successfully");
         logger.Info($"[Softcore] Economy enabled: {config.EconomyOptions.Enabled}");
         logger.Info($"[Softcore] Barter economy enabled: {config.EconomyOptions.BarterEconomy.Enabled}");
+        logger.Info($"[Softcore] Trader changes enabled: {config.TraderChanges.Enabled}");
 
         economyChanger.Apply(config.EconomyOptions);
+        traderChanger.Apply(config.TraderChanges);
         craftingChanger.Apply(config.CraftingChanges);
 
         logger.Success("[Softcore] All changes applied successfully");
