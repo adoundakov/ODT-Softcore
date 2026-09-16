@@ -24,6 +24,31 @@ public static class TraderData
     ];
 
     /// <summary>
+    /// The only item base classes Fence may sell. Every other class an item template uses is blacklisted
+    /// (derived at runtime, see <c>TraderChangesChanger.DoPacifistFence</c>).
+    /// </summary>
+    public static readonly HashSet<MongoId> PacifistFenceWhitelist =
+    [
+        BaseClasses.DRINK,
+        BaseClasses.INFO,
+        BaseClasses.FOOD,
+        BaseClasses.DRUGS,
+        BaseClasses.MED_KIT,
+        BaseClasses.MEDICAL,
+        BaseClasses.BATTERY,
+        BaseClasses.ELECTRONICS,
+        BaseClasses.BUILDING_MATERIAL,
+        BaseClasses.HOUSEHOLD_GOODS,
+        BaseClasses.JEWELRY,
+        BaseClasses.LUBRICANT,
+        BaseClasses.OTHER,
+        BaseClasses.TOOL,
+        BaseClasses.MEDICAL_SUPPLIES,
+        BaseClasses.FUEL,
+        BaseClasses.STIMULATOR,
+    ];
+
+    /// <summary>
     /// Added to the base <c>buy_price_coef</c> of 35 at LL1 (−5 per further LL). The coefficient is the
     /// discount the trader takes, so a bigger number means a worse deal for the player.
     /// </summary>

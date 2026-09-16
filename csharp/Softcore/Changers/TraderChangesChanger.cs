@@ -166,9 +166,66 @@ public class TraderChangesChanger(
         return categories;
     }
 
+    /// <summary>
+    /// Fence sells only the pacifist categories, no weapon/equipment presets, at handbook price
+    /// (0.82× in the 6-karma discount assort). All of it goes through <see cref="TraderConfig.Fence"/>,
+    /// which FenceBaseAssortGenerator / FenceService read at generation time, after us.
+    /// </summary>
     private void DoPacifistFence(int numberOfFenceOffers)
     {
-        _logger.Info("[Softcore] Pacifist Fence: not implemented yet");
+        if (numberOfFenceOffers <= 0)
+        {
+            _logger.Warning($"[Softcore] pacifistFence.numberOfFenceOffers must be positive, got {numberOfFenceOffers}; skipping");
+            return;
+        }
+
+        var fence = _traderConfig.Fence;
+        var whitelist = TraderData.PacifistFenceWhitelist;
+
+        // Blacklist = every base class an item template uses, minus the whitelist. Derived at runtime
+        // (the TS shipped a static list generated the same way) so categories added after 3.11 and by
+        // other mods are blacklisted too, which is the failure mode we want for a pacifist Fence.
+        // FenceBaseAssortGenerator checks Blacklist with IsOfBaseclasses, so base-class ids work here.
+        // Quest items are not added: itemHelper.IsValidItem already rejects them before the blacklist
+        // is consulted, so the TS union was redundant.
+        var fenceBlacklist = _templateTable.Items.Values
+            .Where(item => item.Type == "Item")
+            .Select(item => item.Parent)
+            .Where(parent => !whitelist.Contains(parent))
+            .ToHashSet();
+
+        fence.Blacklist.UnionWith(fenceBlacklist);
+        fence.Blacklist.UnionWith(FleaMarketData.BSGBlacklist);
+        fence.Blacklist.Add(ItemTpl.INFO_ENCRYPTED_FLASH_DRIVE);
+
+        // Vanilla caps several whitelisted classes at 0 (INFO, STIMULATOR, ...), which would hide them
+        // from Fence entirely. Replace the table with numberOfFenceOffers per whitelisted class; every
+        // other class is blacklisted anyway. Note that on 4.1.5 FenceService never increments the
+        // per-class counter (it mutates a tuple copy), so any non-zero value means "unlimited" for now.
+        // MEDICAL_SUPPLIES is left out of the limits and the duplicate guard: the TS found that
+        // including it broke Fence generation ("SPT GITM BUG ... wasted 3 hours"). Absent = unlimited.
+        fence.ItemTypeLimits.Clear();
+        fence.PreventDuplicateOffersOfCategory.Clear();
+        foreach (var baseClass in whitelist.Where(cls => cls != BaseClasses.MEDICAL_SUPPLIES))
+        {
+            fence.ItemTypeLimits[baseClass] = numberOfFenceOffers;
+            fence.PreventDuplicateOffersOfCategory.Add(baseClass);
+        }
+
+        fence.AssortSize = numberOfFenceOffers;
+        fence.EquipmentPresetMinMax.Min = 0;
+        fence.EquipmentPresetMinMax.Max = 0;
+        fence.WeaponPresetMinMax.Min = 0;
+        fence.WeaponPresetMinMax.Max = 0;
+        fence.ItemPriceMult = 1;
+        fence.DiscountOptions.AssortSize = numberOfFenceOffers * 2;
+        fence.DiscountOptions.ItemPriceMult = 0.82;
+        fence.DiscountOptions.WeaponPresetMinMax.Min = 0;
+        fence.DiscountOptions.WeaponPresetMinMax.Max = 0;
+        fence.DiscountOptions.EquipmentPresetMinMax.Min = 0;
+        fence.DiscountOptions.EquipmentPresetMinMax.Max = 0;
+
+        _logger.Success($"[Softcore] Pacifist Fence: {numberOfFenceOffers} offers, {fenceBlacklist.Count} base classes blacklisted");
     }
 
     private void DoReasonablyPricedCases()
