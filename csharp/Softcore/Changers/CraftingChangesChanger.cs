@@ -10,7 +10,7 @@ namespace Softcore.Changers;
 
 /// <summary>
 /// Applies crafting recipe changes:
-/// - Rebalances 47 existing recipes (output counts, requirements)
+/// - Rebalances 48 existing recipes (output counts, requirements)
 /// - Adds 16 new recipes (container progression + stims)
 /// </summary>
 [Injectable]

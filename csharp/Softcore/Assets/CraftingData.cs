@@ -206,6 +206,9 @@ public static class CraftingData
 
             new(ItemTpl.BARTER_SPARK_PLUG, craft => craft.Count = 4),
 
+            // Not in the TS mod: 6 tools -> 1 toolset is worse than Mechanic's barter
+            new(ItemTpl.BARTER_TOOLSET, craft => craft.Count = 2),
+
             // TS source notes "this will break" on this one
             new(ItemTpl.BARTER_PRINTED_CIRCUIT_BOARD, craft =>
             {
