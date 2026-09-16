@@ -1,8 +1,7 @@
 using SPTarkov.DI.Annotations;
-using SPTarkov.Server.Core.Models.Utils;
-using SPTarkov.Server.Core.Servers;
-using SPTarkov.Server.Core.Services;
+using SPTarkov.Common.Models.Logging;
 using SPTarkov.Server.Core.Models.Spt.Config;
+using SPTarkov.Server.Core.Models.Spt.Tables;
 using Softcore.Config;
 
 namespace Softcore.Changers;
@@ -16,22 +15,14 @@ namespace Softcore.Changers;
 /// - Flea unlock level
 /// </summary>
 [Injectable]
-#pragma warning disable CS0618 // ConfigServer replacement API not yet available in current SPT version
-public class OtherFleaMarketChangesChanger
+public class OtherFleaMarketChangesChanger(
+    ISptLogger<OtherFleaMarketChangesChanger> logger,
+    RagfairConfig ragfairConfig,
+    GlobalTable globalTable)
 {
-    private readonly ISptLogger<OtherFleaMarketChangesChanger> _logger;
-    private readonly ConfigServer _configServer;
-    private readonly DatabaseService _databaseService;
-
-    public OtherFleaMarketChangesChanger(
-        ISptLogger<OtherFleaMarketChangesChanger> logger,
-        ConfigServer configServer,
-        DatabaseService databaseService)
-    {
-        _logger = logger;
-        _configServer = configServer;
-        _databaseService = databaseService;
-    }
+    private readonly ISptLogger<OtherFleaMarketChangesChanger> _logger = logger;
+    private readonly RagfairConfig _ragfairConfig = ragfairConfig;
+    private readonly GlobalTable _globalTable = globalTable;
 
     public void Apply(OtherFleaMarketChangesConfig config)
     {
@@ -59,26 +50,23 @@ public class OtherFleaMarketChangesChanger
 
     private void DoSellingOnFlea(bool enabled)
     {
-        var ragfairConfig = _configServer.GetConfig<RagfairConfig>();
         if (!enabled)
         {
-            ragfairConfig.Sell.Chance.Base = 0;
-            ragfairConfig.Sell.Chance.MaxSellChancePercent = 0;
+            _ragfairConfig.Sell.Chance.Base = 0;
+            _ragfairConfig.Sell.Chance.MaxSellChancePercent = 0;
         }
     }
 
     private void AdjustOnlyFIRforBarters(bool enabled)
     {
-        var globals = _databaseService.GetGlobals();
-        globals.Configuration.RagFair.IsOnlyFoundInRaidAllowed = enabled;
+        _globalTable.Configuration.RagFair.IsOnlyFoundInRaidAllowed = enabled;
     }
 
     private void AdjustPristineItems(bool enabled)
     {
         if (enabled)
         {
-            var ragfairConfig = _configServer.GetConfig<RagfairConfig>();
-            foreach (var condition in ragfairConfig.Dynamic.Condition.Values)
+            foreach (var condition in _ragfairConfig.Dynamic.Condition.Values)
             {
                 condition.ConditionChance = 0;
             }
@@ -87,15 +75,12 @@ public class OtherFleaMarketChangesChanger
 
     private void IncreaseFleaPrices(double multiplier)
     {
-        var ragfairConfig = _configServer.GetConfig<RagfairConfig>();
-        ragfairConfig.Dynamic.PriceRanges.Default.Max *= multiplier;
-        ragfairConfig.Dynamic.PriceRanges.Default.Min *= multiplier;
+        _ragfairConfig.Dynamic.PriceRanges.Default.Max *= multiplier;
+        _ragfairConfig.Dynamic.PriceRanges.Default.Min *= multiplier;
     }
 
     public void UpdateRagfairMinUserLevel(int level)
     {
-        var globals = _databaseService.GetGlobals();
-        globals.Configuration.RagFair.MinUserLevel = level;
+        _globalTable.Configuration.RagFair.MinUserLevel = level;
     }
 }
-#pragma warning restore CS0618

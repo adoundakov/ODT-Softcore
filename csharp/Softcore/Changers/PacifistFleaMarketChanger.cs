@@ -1,8 +1,7 @@
 using SPTarkov.DI.Annotations;
-using SPTarkov.Server.Core.Models.Utils;
-using SPTarkov.Server.Core.Servers;
-using SPTarkov.Server.Core.Services;
+using SPTarkov.Common.Models.Logging;
 using SPTarkov.Server.Core.Models.Spt.Config;
+using SPTarkov.Server.Core.Models.Spt.Tables;
 using SPTarkov.Server.Core.Models.Common;
 using Softcore.Config;
 using Softcore.Assets;
@@ -14,22 +13,14 @@ namespace Softcore.Changers;
 /// Allows whitelisted items, quest keys, and marked keys with price multipliers.
 /// </summary>
 [Injectable]
-#pragma warning disable CS0618 // ConfigServer replacement API not yet available in current SPT version
-public class PacifistFleaMarketChanger
+public class PacifistFleaMarketChanger(
+    ISptLogger<PacifistFleaMarketChanger> logger,
+    RagfairConfig ragfairConfig,
+    TemplateTable templateTable)
 {
-    private readonly ISptLogger<PacifistFleaMarketChanger> _logger;
-    private readonly ConfigServer _configServer;
-    private readonly DatabaseService _databaseService;
-
-    public PacifistFleaMarketChanger(
-        ISptLogger<PacifistFleaMarketChanger> logger,
-        ConfigServer configServer,
-        DatabaseService databaseService)
-    {
-        _logger = logger;
-        _configServer = configServer;
-        _databaseService = databaseService;
-    }
+    private readonly ISptLogger<PacifistFleaMarketChanger> _logger = logger;
+    private readonly RagfairConfig _ragfairConfig = ragfairConfig;
+    private readonly TemplateTable _templateTable = templateTable;
 
     public void Apply(PacifistFleaMarketConfig config)
     {
@@ -58,9 +49,9 @@ public class PacifistFleaMarketChanger
 
     private void PacifistFleaMarket(PacifistFleaMarketConfig config)
     {
-        var items = _databaseService.GetItems();
-        var handbook = _databaseService.GetHandbook();
-        var ragfairConfig = _configServer.GetConfig<RagfairConfig>();
+        var items = _templateTable.Items;
+        var handbook = _templateTable.Handbook;
+        var ragfairConfig = _ragfairConfig;
 
         // Convert whitelist handbook IDs to MongoId for comparison
         var whitelistedCategories = FleaMarketData.FleaListingsWhitelistHandbook
@@ -92,9 +83,9 @@ public class PacifistFleaMarketChanger
         if (!config.Enabled)
             return;
 
-        var items = _databaseService.GetItems();
-        var prices = _databaseService.GetPrices();
-        var ragfairConfig = _configServer.GetConfig<RagfairConfig>();
+        var items = _templateTable.Items;
+        var prices = _templateTable.Prices;
+        var ragfairConfig = _ragfairConfig;
 
         foreach (var itemIdStr in FleaMarketData.Whitelist)
         {
@@ -124,9 +115,9 @@ public class PacifistFleaMarketChanger
         if (!config.Enabled)
             return;
 
-        var items = _databaseService.GetItems();
-        var prices = _databaseService.GetPrices();
-        var ragfairConfig = _configServer.GetConfig<RagfairConfig>();
+        var items = _templateTable.Items;
+        var prices = _templateTable.Prices;
+        var ragfairConfig = _ragfairConfig;
 
         foreach (var keyIdStr in KeysData.QuestKeys)
         {
@@ -156,9 +147,9 @@ public class PacifistFleaMarketChanger
         if (!config.Enabled)
             return;
 
-        var items = _databaseService.GetItems();
-        var prices = _databaseService.GetPrices();
-        var ragfairConfig = _configServer.GetConfig<RagfairConfig>();
+        var items = _templateTable.Items;
+        var prices = _templateTable.Prices;
+        var ragfairConfig = _ragfairConfig;
 
         foreach (var keyIdStr in KeysData.MarkedKeys)
         {
@@ -183,4 +174,3 @@ public class PacifistFleaMarketChanger
         _logger.Info($"[Softcore] Allowed {KeysData.MarkedKeys.Count} marked keys with {config.PriceMultiplier}x multiplier");
     }
 }
-#pragma warning restore CS0618

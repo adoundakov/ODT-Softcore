@@ -1,90 +1,44 @@
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.DI;
-using SPTarkov.Server.Core.Models.Utils;
-using System.Reflection;
-using System.Text.Json;
+using SPTarkov.Common.Models.Logging;
 using Softcore.Config;
 using Softcore.Changers;
 
 namespace Softcore;
 
-[Injectable(TypePriority = OnLoadOrder.PostDBModLoader + 1)]
-public class Plugin : IOnLoad
+/// <summary>
+/// Entry point. Runs at Preload + 1: every table and SPT config is loaded by then, but nothing has
+/// consumed them yet. In particular RagfairCallbacks (900000) snapshots prices and generates all
+/// flea offers from RagfairConfig, so our economy edits must land before it — PostLoad is too late.
+/// </summary>
+[Injectable(TypePriority = OnLoadOrder.Preload + 1)]
+public class Plugin(
+    ISptLogger<Plugin> logger,
+    Configuration config,
+    EconomyOptionsChanger economyChanger,
+    CraftingChangesChanger craftingChanger) : IOnLoad
 {
-    private readonly ISptLogger<Plugin> _logger;
-    private readonly EconomyOptionsChanger _economyChanger;
-    private readonly CraftingChangesChanger _craftingChanger;
-    private Configuration? _config;
-
-    public Plugin(
-        ISptLogger<Plugin> logger,
-        EconomyOptionsChanger economyChanger,
-        CraftingChangesChanger craftingChanger)
+    public Task OnLoadAsync(CancellationToken cancellationToken)
     {
-        _logger = logger;
-        _economyChanger = economyChanger;
-        _craftingChanger = craftingChanger;
-    }
-
-    public async Task OnLoad()
-    {
-        // Load configuration
-        _config = await LoadConfiguration();
-
-        if (_config == null || !_config.General.Enabled)
+        if (!config.LoadedFromDisk)
         {
-            _logger.Warning("[Softcore] Mod is disabled in config");
-            return;
+            logger.Error($"[Softcore] Config file not found at: {config.ConfigPath} — using default configuration");
         }
 
-        _logger.Success("[Softcore] Configuration loaded successfully");
-        _logger.Info($"[Softcore] Economy enabled: {_config.EconomyOptions.Enabled}");
-        _logger.Info($"[Softcore] Barter economy enabled: {_config.EconomyOptions.BarterEconomy.Enabled}");
-
-        // Apply economy changes
-        _economyChanger.Apply(_config.EconomyOptions);
-
-        // Apply crafting changes
-        _craftingChanger.Apply(_config.CraftingChanges);
-
-        _logger.Success("[Softcore] All changes applied successfully");
-    }
-
-    private async Task<Configuration?> LoadConfiguration()
-    {
-        try
+        if (!config.General.Enabled)
         {
-            // Get the mod's directory from the assembly location
-            var assemblyLocation = Assembly.GetExecutingAssembly().Location;
-            var modDirectory = Path.GetDirectoryName(assemblyLocation);
-            var configPath = Path.Combine(modDirectory!, "config", "config.json");
-
-            if (!File.Exists(configPath))
-            {
-                _logger.Error($"[Softcore] Config file not found at: {configPath}");
-                return CreateDefaultConfig();
-            }
-
-            var jsonString = await File.ReadAllTextAsync(configPath);
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                ReadCommentHandling = JsonCommentHandling.Skip,
-                AllowTrailingCommas = true
-            };
-
-            return JsonSerializer.Deserialize<Configuration>(jsonString, options);
+            logger.Warning("[Softcore] Mod is disabled in config");
+            return Task.CompletedTask;
         }
-        catch (Exception ex)
-        {
-            _logger.Error($"[Softcore] Failed to load config: {ex.Message}");
-            _logger.Info("[Softcore] Using default configuration");
-            return CreateDefaultConfig();
-        }
-    }
 
-    private Configuration CreateDefaultConfig()
-    {
-        return new Configuration();  // Uses default values from class initializers
+        logger.Success("[Softcore] Configuration loaded successfully");
+        logger.Info($"[Softcore] Economy enabled: {config.EconomyOptions.Enabled}");
+        logger.Info($"[Softcore] Barter economy enabled: {config.EconomyOptions.BarterEconomy.Enabled}");
+
+        economyChanger.Apply(config.EconomyOptions);
+        craftingChanger.Apply(config.CraftingChanges);
+
+        logger.Success("[Softcore] All changes applied successfully");
+        return Task.CompletedTask;
     }
 }

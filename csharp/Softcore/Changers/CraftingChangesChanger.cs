@@ -1,8 +1,8 @@
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.Models.Eft.Hideout;
 using SPTarkov.Server.Core.Models.Enums.Hideout;
-using SPTarkov.Server.Core.Models.Utils;
-using SPTarkov.Server.Core.Services;
+using SPTarkov.Common.Models.Logging;
+using SPTarkov.Server.Core.Models.Spt.Tables;
 using Softcore.Assets;
 using Softcore.Config;
 
@@ -14,18 +14,12 @@ namespace Softcore.Changers;
 /// - Adds 16 new recipes (container progression + stims)
 /// </summary>
 [Injectable]
-public class CraftingChangesChanger
+public class CraftingChangesChanger(
+    ISptLogger<CraftingChangesChanger> logger,
+    HideoutTable hideoutTable)
 {
-    private readonly ISptLogger<CraftingChangesChanger> _logger;
-    private readonly DatabaseService _databaseService;
-
-    public CraftingChangesChanger(
-        ISptLogger<CraftingChangesChanger> logger,
-        DatabaseService databaseService)
-    {
-        _logger = logger;
-        _databaseService = databaseService;
-    }
+    private readonly ISptLogger<CraftingChangesChanger> _logger = logger;
+    private readonly HideoutTable _hideoutTable = hideoutTable;
 
     public void Apply(CraftingChangesConfig config)
     {
@@ -62,7 +56,7 @@ public class CraftingChangesChanger
 
     private void DoCraftingRebalance()
     {
-        var recipes = _databaseService.GetHideout().Production?.Recipes;
+        var recipes = _hideoutTable.Production.Recipes;
         if (recipes == null)
         {
             _logger.Warning("[Softcore] Hideout recipes not found in database");
@@ -99,7 +93,7 @@ public class CraftingChangesChanger
 
     private void DoAdditionalCraftingRecipes()
     {
-        var recipes = _databaseService.GetHideout().Production?.Recipes;
+        var recipes = _hideoutTable.Production.Recipes;
         if (recipes == null)
         {
             _logger.Warning("[Softcore] Hideout recipes not found in database");

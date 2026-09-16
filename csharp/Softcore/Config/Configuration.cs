@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Softcore.Config;
 
 // Root configuration
@@ -6,6 +8,13 @@ public class Configuration
     public GeneralConfig General { get; set; } = new();
     public EconomyOptionsConfig EconomyOptions { get; set; } = new();
     public CraftingChangesConfig CraftingChanges { get; set; } = new();
+
+    /// <summary>False when config.json was missing and class-initializer defaults are in use.</summary>
+    [JsonIgnore]
+    public bool LoadedFromDisk { get; set; } = true;
+
+    [JsonIgnore]
+    public string? ConfigPath { get; set; }
 }
 
 // General settings

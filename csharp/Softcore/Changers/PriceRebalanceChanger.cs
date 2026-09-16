@@ -1,6 +1,6 @@
 using SPTarkov.DI.Annotations;
-using SPTarkov.Server.Core.Models.Utils;
-using SPTarkov.Server.Core.Services;
+using SPTarkov.Common.Models.Logging;
+using SPTarkov.Server.Core.Models.Spt.Tables;
 using SPTarkov.Server.Core.Models.Common;
 using Softcore.Config;
 
@@ -10,18 +10,12 @@ namespace Softcore.Changers;
 /// Syncs flea market prices to handbook prices and applies item price fixes.
 /// </summary>
 [Injectable]
-public class PriceRebalanceChanger
+public class PriceRebalanceChanger(
+    ISptLogger<PriceRebalanceChanger> logger,
+    TemplateTable templateTable)
 {
-    private readonly ISptLogger<PriceRebalanceChanger> _logger;
-    private readonly DatabaseService _databaseService;
-
-    public PriceRebalanceChanger(
-        ISptLogger<PriceRebalanceChanger> logger,
-        DatabaseService databaseService)
-    {
-        _logger = logger;
-        _databaseService = databaseService;
-    }
+    private readonly ISptLogger<PriceRebalanceChanger> _logger = logger;
+    private readonly TemplateTable _templateTable = templateTable;
 
     public void Apply(PriceRebalanceConfig config)
     {
@@ -50,8 +44,10 @@ public class PriceRebalanceChanger
 
     private void DoItemFixes()
     {
-        // Set specific item prices in handbook
-        var handbook = _databaseService.GetHandbook();
+        // Set specific item prices in handbook.
+        // HandbookHelper caches prices lazily on first GetTemplatePrice() call and has no public
+        // re-hydrate, so this must run before any caller — Plugin's Preload + 1 priority is the mitigation.
+        var handbook = _templateTable.Handbook;
         var handbookItems = handbook.Items;
 
         // Example: fix Bitcoin price
@@ -69,8 +65,8 @@ public class PriceRebalanceChanger
     private void DoPriceRebalance()
     {
         // Sync all flea prices to handbook prices
-        var handbook = _databaseService.GetHandbook();
-        var fleaPrices = _databaseService.GetPrices();
+        var handbook = _templateTable.Handbook;
+        var fleaPrices = _templateTable.Prices;
 
         foreach (var item in handbook.Items)
         {

@@ -1,9 +1,8 @@
 using SPTarkov.DI.Annotations;
-using SPTarkov.Server.Core.Models.Utils;
-using SPTarkov.Server.Core.Servers;
-using SPTarkov.Server.Core.Services;
-using SPTarkov.Server.Core.Helpers;
+using SPTarkov.Common.Models.Logging;
+using SPTarkov.Server.Core.Helpers.Items;
 using SPTarkov.Server.Core.Models.Spt.Config;
+using SPTarkov.Server.Core.Models.Spt.Tables;
 using SPTarkov.Server.Core.Models.Common;
 using Softcore.Config;
 using Softcore.Assets;
@@ -15,25 +14,16 @@ namespace Softcore.Changers;
 /// Controls barter chance, price variance, item counts, and blacklists.
 /// </summary>
 [Injectable]
-#pragma warning disable CS0618 // ConfigServer replacement API not yet available in current SPT version
-public class BarterEconomyChanger
+public class BarterEconomyChanger(
+    ISptLogger<BarterEconomyChanger> logger,
+    RagfairConfig ragfairConfig,
+    TemplateTable templateTable,
+    ItemHelper itemHelper)
 {
-    private readonly ISptLogger<BarterEconomyChanger> _logger;
-    private readonly ConfigServer _configServer;
-    private readonly DatabaseService _databaseService;
-    private readonly ItemHelper _itemHelper;
-
-    public BarterEconomyChanger(
-        ISptLogger<BarterEconomyChanger> logger,
-        ConfigServer configServer,
-        DatabaseService databaseService,
-        ItemHelper itemHelper)
-    {
-        _logger = logger;
-        _configServer = configServer;
-        _databaseService = databaseService;
-        _itemHelper = itemHelper;
-    }
+    private readonly ISptLogger<BarterEconomyChanger> _logger = logger;
+    private readonly RagfairConfig _ragfairConfig = ragfairConfig;
+    private readonly TemplateTable _templateTable = templateTable;
+    private readonly ItemHelper _itemHelper = itemHelper;
 
     public void Apply(BarterEconomyConfig config)
     {
@@ -75,13 +65,12 @@ public class BarterEconomyChanger
             .ToHashSet();
 
         // 2. Apply to ragfair config
-        var ragfairConfig = _configServer.GetConfig<RagfairConfig>();
-        ragfairConfig.Dynamic.Barter.ItemTypeBlacklist = barterBlacklist;
-        ragfairConfig.Dynamic.Barter.MinRoubleCostToBecomeBarter = 100;
+        _ragfairConfig.Dynamic.Barter.ItemTypeBlacklist = barterBlacklist;
+        _ragfairConfig.Dynamic.Barter.MinRoubleCostToBecomeBarter = 100;
 
         // 3. Adjust flea prices for quest items and non-sellable items
-        var items = _databaseService.GetItems();
-        var fleaPrices = _databaseService.GetPrices();
+        var items = _templateTable.Items;
+        var fleaPrices = _templateTable.Prices;
 
         foreach (var (itemId, item) in items)
         {
@@ -112,49 +101,42 @@ public class BarterEconomyChanger
     private void AdjustCashOffers(int cashOffersPercentage)
     {
         // Inverse: cashOffersPercentage=0 means 100% barter
-        var ragfairConfig = _configServer.GetConfig<RagfairConfig>();
-        ragfairConfig.Dynamic.Barter.ChancePercent = 100 - cashOffersPercentage;
+        _ragfairConfig.Dynamic.Barter.ChancePercent = 100 - cashOffersPercentage;
     }
 
     private void SetupRandomCurrencyDistribution()
     {
-        var ragfairConfig = _configServer.GetConfig<RagfairConfig>();
-
         // Set equal distribution across all three currencies for random selection
         // Roubles: 5449016a4bdc2d6f028b456f
         // Euros: 569668774bdc2da2298b4568
         // Dollars: 5696686a4bdc2da3298b456a
-        ragfairConfig.Dynamic.OfferCurrencyChangePercent[(MongoId)"5449016a4bdc2d6f028b456f"] = 33; // RUB
-        ragfairConfig.Dynamic.OfferCurrencyChangePercent[(MongoId)"569668774bdc2da2298b4568"] = 33; // EUR
-        ragfairConfig.Dynamic.OfferCurrencyChangePercent[(MongoId)"5696686a4bdc2da3298b456a"] = 34; // USD
+        _ragfairConfig.Dynamic.OfferCurrencyChangePercent[(MongoId)"5449016a4bdc2d6f028b456f"] = 33; // RUB
+        _ragfairConfig.Dynamic.OfferCurrencyChangePercent[(MongoId)"569668774bdc2da2298b4568"] = 33; // EUR
+        _ragfairConfig.Dynamic.OfferCurrencyChangePercent[(MongoId)"5696686a4bdc2da3298b456a"] = 34; // USD
 
         _logger.Info("[Softcore] Currency distribution: 33% RUB, 33% EUR, 34% USD");
     }
 
     private void AdjustBarterPriceVariance(int variancePercent)
     {
-        var ragfairConfig = _configServer.GetConfig<RagfairConfig>();
-        ragfairConfig.Dynamic.Barter.PriceRangeVariancePercent = variancePercent;
+        _ragfairConfig.Dynamic.Barter.PriceRangeVariancePercent = variancePercent;
     }
 
     private void AdjustItemCountMax(int max)
     {
-        var ragfairConfig = _configServer.GetConfig<RagfairConfig>();
-        ragfairConfig.Dynamic.Barter.ItemCountMax = max;
+        _ragfairConfig.Dynamic.Barter.ItemCountMax = max;
     }
 
     private void AdjustOfferItemCount(MinMax range)
     {
-        var ragfairConfig = _configServer.GetConfig<RagfairConfig>();
         // OfferItemCount is a Dictionary<string, MinMax<int>> - update the "default" key
-        ragfairConfig.Dynamic.OfferItemCount["default"] = new MinMax<int>(range.Min, range.Max);
+        _ragfairConfig.Dynamic.OfferItemCount["default"] = new MinMax<int>(range.Min, range.Max);
     }
 
     private void AdjustNonStackableAmount(MinMax range)
     {
-        var ragfairConfig = _configServer.GetConfig<RagfairConfig>();
         // NonStackableCount is a MinMax<int> - replace the entire object (records are immutable)
-        ragfairConfig.Dynamic.NonStackableCount = new MinMax<int>(range.Min, range.Max);
+        _ragfairConfig.Dynamic.NonStackableCount = new MinMax<int>(range.Min, range.Max);
     }
 
     private bool IsOfBaseClasses(MongoId itemId, HashSet<MongoId> baseClasses)
@@ -162,4 +144,3 @@ public class BarterEconomyChanger
         return _itemHelper.IsOfBaseclasses(itemId, baseClasses);
     }
 }
-#pragma warning restore CS0618

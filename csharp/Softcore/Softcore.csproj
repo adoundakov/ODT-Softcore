@@ -1,19 +1,20 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>Softcore</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <OutputType>Library</OutputType>
-    <Version>4.0.0</Version>
+    <ModAuthor>DukeWendigo</ModAuthor>
+    <Version>4.1.0</Version>
     <OutputPath>bin\$(Configuration)\Softcore\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SPTarkov.Common" Version="4.0.5" />
-    <PackageReference Include="SPTarkov.DI" Version="4.0.5" />
-    <PackageReference Include="SPTarkov.Server.Core" Version="4.0.5" />
+    <PackageReference Include="SPTushonka.Common" Version="4.1.5" />
+    <PackageReference Include="SPTushonka.DI" Version="4.1.5" />
+    <PackageReference Include="SPTushonka.Server.Core" Version="4.1.5" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,4 +22,32 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>None</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
+  </PropertyGroup>
+
+  <!-- dotnet build -c Release → ReleaseZip/DukeWendigo-Softcore-{Version}.zip, unzips straight into an SPT install -->
+  <Target Name="ZipRelease" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
+    <PropertyGroup>
+      <ReleaseDirectory>$(MSBuildProjectDirectory)\ReleaseZip\</ReleaseDirectory>
+      <ZipOutput>$(ReleaseDirectory)$(ModAuthor)-$(AssemblyName)-$(Version).zip</ZipOutput>
+      <ZipTempDir>$(IntermediateOutputPath)ReleaseZip\</ZipTempDir>
+    </PropertyGroup>
+
+    <MakeDir Directories="$(ReleaseDirectory)" />
+    <RemoveDir Directories="$(ZipTempDir)" />
+    <MakeDir Directories="$(ZipTempDir)SPT_Runtime\user\mods\$(ModAuthor)-$(AssemblyName)" />
+
+    <ItemGroup>
+      <ReleaseFiles Include="$(TargetDir)**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ReleaseFiles)" DestinationFiles="@(ReleaseFiles->'$(ZipTempDir)SPT_Runtime\user\mods\$(ModAuthor)-$(AssemblyName)\%(RecursiveDir)%(Filename)%(Extension)')" />
+
+    <ZipDirectory SourceDirectory="$(ZipTempDir)" DestinationFile="$(ZipOutput)" Overwrite="true" />
+    <Message Importance="High" Text="Created release zip: $(ZipOutput)" />
+  </Target>
 </Project>
