@@ -4,7 +4,7 @@ BETA VERSION. WORK IN PROGRESS. Looking for community feedback. Use at your own 
 
 **Version 4.1.0 targets SPT 4.1.5** (C# server mod in `csharp/`; the `SPT411` branch name predates the 4.1.5 retarget).
 The TypeScript sources in `src/` are the SPT 3.11 mod and are kept as the reference for the port. Only the economy, trader and
-crafting features are ported so far — see `csharp/` and the Configuration section below.
+crafting features are ported so far, plus the Ref changes and quest rewards below — see `csharp/` and the Configuration section.
 
 Build: `cd csharp && dotnet build -c Release` → `csharp/Softcore/ReleaseZip/DukeWendigo-Softcore-4.1.0.zip`, unzip into your SPT folder.
 
@@ -39,6 +39,15 @@ Leveling traders and crafting is your only hope of survival.
 - Reasonably priced hideout cases at Therapist, Peacekeeper and Skier, a 10x cheaper LEDX dogtag barter and a new Golden neck chain barter at Therapist (10 dogtags lvl 10+).
 - Bigger trader buy limits (2x by default).
 - Optional: Skier trades in Euros (off by default, see `skierUsesEuros`).
+
+## Ref changes (lifted from Geko's Better Progression):
+- Ref pays in GP coins for what you sell him.
+- Ref buys only dogtags (every variant) and Lega Medals — no more selling guns and ammo to him.
+- Every PMC kill raises Ref standing, scaled by the victim's level (0.003 to 0.01 per kill by default). Only counts when you survive the raid; Scav-raid kills count too.
+- Ref sells the Streamer Item Case at LL1 for 50 GP, 3 per restock.
+
+## Quest rewards:
+- Prapor's "Stirrup" additionally rewards an Ammunition Case.
 
 ## Hideout features:
 - 100x faster hideout construction.
@@ -143,6 +152,39 @@ SPT server dashboard's config editor rewrites it through `System.Text.Json`. Cha
 | `enabled` | `true` | Master toggle for all crafting changes below. |
 | `craftingRebalance` | `true` | Major rebalance of crafting recipes around component rarity, usefulness, trader prices and plain "lore" logic. Some nerfs, but a lot of huge buffs. The idea is to make most crafts useful and/or profitable. |
 | `additionalCraftingRecipes` | `true` | New custom lore-friendly and balanced crafting recipes for 3-(b-TG), Adrenaline, L1, AHF1, CALOK, Ophthalmoscope, Zagustin, Obdolbos, OLOLO and the secure-container upgrades. |
+
+### `refChanges`
+| Option | Default | Description |
+|---|---|---|
+| `enabled` | `true` | Master toggle for all Ref changes below. |
+| `buysInGpCoins` | `true` | Ref pays in GP coins for what you sell him, at the GP handbook rate (7500 RUB/GP on 4.1.5). Enables a small server patch (`TraderController.GetItemPrices`) so the client can display GP sell prices. |
+| `onlyBuysDogtags` | `true` | Ref buys only dogtags (every variant, incl. EOD/Unheard/prestige) instead of weapons, mods and ammo. |
+| `alsoBuysLegaMedals` | `true` | Ref also buys Lega Medals. Independent of `onlyBuysDogtags`. |
+
+#### `refChanges.standingOnKill`
+| Option | Default | Description |
+|---|---|---|
+| `enabled` | `true` | Every PMC you kill raises Ref standing, scaled by the victim's level. Ref's loyalty thresholds on 4.1.5 are standing 0 / 0.25 / 0.5 / 1.2 at PMC level 1 / 15 / 25 / 35, so LL2 is roughly 60 mid-level kills at the defaults. Kills made as a Scav count too. Enables a server patch on `LocationLifecycleService.EndLocalRaidAsync`. |
+| `requireSurvival` | `true` | Only credit kills when the raid ends survived. No standing when you die, go MIA or run through. |
+| `repByKillLevel` | see config | Standing per kill by victim level: a list of `{ minLevel, maxLevel, rep }`. Ranges are half-open (`minLevel` inclusive, `maxLevel` exclusive), so a level-10 victim matches `[10, 30)`. Defaults: 0.003 below 10, 0.004 to 30, 0.006 to 50, 0.01 above. |
+
+#### `refChanges.streamerItemCase`
+| Option | Default | Description |
+|---|---|---|
+| `enabled` | `true` | Ref sells the Streamer Item Case for GP coins. Not in his vanilla assort. |
+| `loyaltyLevel` | `1` | Ref loyalty level the barter unlocks at (1–4). |
+| `gpPrice` | `50` | Price in GP coins. |
+| `buyLimit` | `3` | Buy limit per trader restock. |
+
+### `questRewards`
+| Option | Default | Description |
+|---|---|---|
+| `enabled` | `true` | Master toggle for all quest reward changes below. |
+| `stirrupAmmunitionCase` | `true` | Prapor's "Stirrup" additionally rewards an Ammunition Case on completion. Same reward id as Geko's Better Progression, so a profile coming from that mod sees the same reward. |
+
+## Compatibility:
+- The two Ref patches are Harmony postfixes and compose with other mods patching the same methods. The kill-standing patch replaces the returned `Task` of `EndLocalRaidAsync` with a continuation; a mod that also postfixes that method sees our task and everything still runs in order.
+- Geko's Better Progression: don't enable its `refChanges` alongside ours, the standing would be credited twice.
 
 ## Notes:
 - No, you cannot use your new fastly mined bitcoins for barters. Because of well, reasons. Like inflation, man. It hits all of us. No one cares about crypto anymore, except you and your nerd friend Mechanic. 

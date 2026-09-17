@@ -9,8 +9,11 @@ This is "ODT-Softcore", a mod for SPT (Single Player Tarkov) that rebalances the
 ## Two implementations
 
 - `csharp/` — **the active mod**, a C# server mod for SPT 4.1.5 (`SPTushonka.*` 4.1.5 NuGet packages, net10.0).
-  Currently ports `economyOptions`, `traderChanges` and `craftingChanges`. Structure mirrors the TS mod: `Plugin.cs` (entry,
-  `IOnLoad` at `Preload + 1`), `Changers/`, `Assets/`, `Config/` (`Configuration.cs` POCO + `config.json`).
+  Currently ports `economyOptions`, `traderChanges` and `craftingChanges`, plus two sections with no TS counterpart lifted
+  from Geko's Better Progression (`../geckos-better-progression`): `refChanges` and `questRewards`. Structure mirrors the
+  TS mod: `Plugin.cs` (entry, `IOnLoad` at `Preload + 1`, also enables the patches behind their config flags), `Changers/`
+  (`AssortHelper` is shared), `Patches/` (Harmony `AbstractPatch` subclasses via `SPTushonka.Reflection`; `[Injectable]`,
+  no config checks inside), `Assets/`, `Config/` (`Configuration.cs` POCO + `config.json`).
   Migration plan and status live in `plans/` (untracked).
 - `src/` — the original TypeScript mod for SPT 3.11. Kept as the reference for porting; the rest of this file
   describes it.
