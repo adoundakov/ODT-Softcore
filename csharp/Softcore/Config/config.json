@@ -66,6 +66,9 @@
   },
   "refChanges": {
     "enabled": true,
+    "buysInGpCoins": true,
+    "onlyBuysDogtags": true,
+    "alsoBuysLegaMedals": true,
     "streamerItemCase": {
       "enabled": true,
       "loyaltyLevel": 1,

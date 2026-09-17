@@ -1,8 +1,10 @@
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.DI;
 using SPTarkov.Common.Models.Logging;
+using SPTarkov.Reflection.Patching;
 using Softcore.Config;
 using Softcore.Changers;
+using Softcore.Patches;
 
 namespace Softcore;
 
@@ -19,7 +21,8 @@ public class Plugin(
     TraderChangesChanger traderChanger,
     CraftingChangesChanger craftingChanger,
     RefChangesChanger refChanger,
-    QuestRewardsChanger questRewardsChanger) : IOnLoad
+    QuestRewardsChanger questRewardsChanger,
+    GpCurrencyCoursePatch gpCurrencyCoursePatch) : IOnLoad
 {
     public Task OnLoadAsync(CancellationToken cancellationToken)
     {
@@ -45,7 +48,29 @@ public class Plugin(
         refChanger.Apply(config.RefChanges);
         questRewardsChanger.Apply(config.QuestRewards);
 
+        if (config.RefChanges.Enabled && config.RefChanges.BuysInGpCoins)
+        {
+            EnablePatch(gpCurrencyCoursePatch);
+        }
+
         logger.Success("[Softcore] All changes applied successfully");
         return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Patches only patch; the config gate lives here. Must be called from this assembly:
+    /// <see cref="AbstractPatch.Enable"/> silently no-ops for any other caller.
+    /// </summary>
+    private void EnablePatch(AbstractPatch patch)
+    {
+        try
+        {
+            patch.Enable();
+            logger.Info($"[Softcore] Patch enabled: {patch.GetType().Name}");
+        }
+        catch (PatchException ex)
+        {
+            logger.Warning($"[Softcore] Patch {patch.GetType().Name} failed: {ex.Message}");
+        }
     }
 }

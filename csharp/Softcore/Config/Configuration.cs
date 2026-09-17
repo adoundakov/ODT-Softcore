@@ -332,6 +332,24 @@ public class RefChangesConfig
     [JsonPropertyName("enabled")]
     public bool Enabled { get; set; } = true;
 
+    /// <summary>
+    /// Ref pays in GP coins for what you sell him, at the GP handbook rate (7500 RUB/GP on 4.1.5).
+    /// Needs a small server patch so the client can display GP sell prices.
+    /// </summary>
+    [JsonPropertyName("buysInGpCoins")]
+    public bool BuysInGpCoins { get; set; } = true;
+
+    /// <summary>
+    /// Ref buys only dogtags (every variant, incl. EOD/Unheard/prestige) instead of weapons, mods and
+    /// ammo. Makes him the dogtag → GP sink.
+    /// </summary>
+    [JsonPropertyName("onlyBuysDogtags")]
+    public bool OnlyBuysDogtags { get; set; } = true;
+
+    /// <summary>Ref also buys Lega Medals. Independent of <see cref="OnlyBuysDogtags"/>.</summary>
+    [JsonPropertyName("alsoBuysLegaMedals")]
+    public bool AlsoBuysLegaMedals { get; set; } = true;
+
     [JsonPropertyName("streamerItemCase")]
     public StreamerItemCaseConfig StreamerItemCase { get; set; } = new();
 }
