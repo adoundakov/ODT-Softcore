@@ -10,3 +10,5 @@ plans/
 csharp/**/bin/
 csharp/**/obj/
 csharp/**/ReleaseZip/
+client/**/bin/
+client/**/obj/

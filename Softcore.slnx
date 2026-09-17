@@ -1,0 +1,5 @@
+<Solution>
+  <!-- Both halves, for an IDE on Windows. `cd csharp && dotnet build` (server only) works on any OS. -->
+  <Project Path="csharp/Softcore/Softcore.csproj" />
+  <Project Path="client/Softcore.Client/Softcore.Client.csproj" />
+</Solution>

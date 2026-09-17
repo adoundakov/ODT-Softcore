@@ -203,8 +203,16 @@ The build output folder is the installed mod as-is: `Softcore.dll` plus `config/
 ### Install a build for testing
 Either unzip the Release zip into your SPT install root, or copy `csharp/Softcore/bin/Debug/Softcore/` to `<SPT>/SPT_Runtime/user/mods/DukeWendigo-Softcore/`. Restart the server after every copy; the mod reads its config once at startup and edits are picked up on the next restart. The server dashboard's config editor writes the same `config/config.json`.
 
+### Client plugin (optional, Windows only)
+`client/Softcore.Client/` is a BepInEx 5 plugin; it currently only logs. It references DLLs from a game install, so it builds only next to one: check the repo out under `<SPT>\Development\ODT-Softcore` (or pass the install root with `-p:SptDir=D:\SPT\`, trailing slash) and run
+```bash
+cd client/Softcore.Client
+dotnet build                 # → <SPT>\BepInEx\plugins\Softcore\Softcore.Client.dll (copied automatically)
+```
+`Softcore.slnx` at the repo root opens both projects in Visual Studio 2022 17.13+ or Rider. A Release build of the client (`dotnet build -c Release` in that folder) is picked up by the server's Release zip on the next `cd csharp && dotnet build -c Release` and lands in `BepInEx/plugins/Softcore/`.
+
 ### Version bump
-Bump both `<Version>` in `csharp/Softcore/Softcore.csproj` (names the zip) and `Version` in `csharp/Softcore/ModMetadata.cs` (what the server reports); `SptVersion` there must stay in step with the `SPTushonka.*` package version.
+Bump `<Version>` in `csharp/Softcore/Softcore.csproj` (names the zip), `Version` in `csharp/Softcore/ModMetadata.cs` (what the server reports), and `<Version>` + `Plugin.Version` in `client/Softcore.Client/`; `SptVersion` in `ModMetadata.cs` must stay in step with the `SPTushonka.*` package version.
 
 ### Legacy TypeScript mod (SPT 3.11 only)
 `src/` is the original 3.11 mod, kept as the porting reference. It does not run on 4.x. Build it with Node 20 (`.nvmrc`): `npm run setup` once, then `npm run build` → `dist/softcore-{version}.zip`.

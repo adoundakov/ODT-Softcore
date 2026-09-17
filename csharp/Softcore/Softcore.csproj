@@ -53,6 +53,21 @@
     </ItemGroup>
     <Copy SourceFiles="@(ReleaseFiles)" DestinationFiles="@(ReleaseFiles->'$(ZipTempDir)SPT_Runtime\user\mods\$(ModAuthor)-$(AssemblyName)\%(RecursiveDir)%(Filename)%(Extension)')" />
 
+    <!-- Optional client plugin (client/Softcore.Client, Windows-only build): included only when its Release
+         output exists, so a Mac build still produces a valid server-only zip. -->
+    <PropertyGroup>
+      <ClientBuildDir>$(MSBuildProjectDirectory)\..\..\client\Softcore.Client\bin\Release\</ClientBuildDir>
+      <ClientAssetsDir>$(MSBuildProjectDirectory)\..\..\client\Softcore.Client\Assets\</ClientAssetsDir>
+    </PropertyGroup>
+    <ItemGroup Condition="Exists('$(ClientBuildDir)Softcore.Client.dll')">
+      <ClientFiles Include="$(ClientBuildDir)Softcore.Client.dll" />
+      <ClientAssetFiles Include="$(ClientAssetsDir)**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ClientFiles)" DestinationFolder="$(ZipTempDir)BepInEx\plugins\Softcore\" />
+    <Copy SourceFiles="@(ClientAssetFiles)" DestinationFiles="@(ClientAssetFiles->'$(ZipTempDir)BepInEx\plugins\Softcore\Assets\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Message Importance="High" Text="Client plugin included in zip" Condition="'@(ClientFiles)' != ''" />
+    <Message Importance="High" Text="Client plugin not built (client/Softcore.Client/bin/Release), zip is server-only" Condition="'@(ClientFiles)' == ''" />
+
     <ZipDirectory SourceDirectory="$(ZipTempDir)" DestinationFile="$(ZipOutput)" Overwrite="true" />
     <Message Importance="High" Text="Created release zip: $(ZipOutput)" />
   </Target>

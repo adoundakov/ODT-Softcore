@@ -1,0 +1,76 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    BepInEx 5 client plugin for SPT 4.1.5. Windows only: every reference below is a DLL from a game install,
+    so this project is NOT part of csharp/Softcore.sln (the server mod builds anywhere). Softcore.slnx at the
+    repo root lists both.
+
+    Assumes the repo is checked out under <SPT>\Development\ODT-Softcore (the wiki's recommended layout); pass
+    -p:SptDir=D:\SPT\ (trailing slash) to build from anywhere else.
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <RootNamespace>Softcore.Client</RootNamespace>
+    <AssemblyName>Softcore.Client</AssemblyName>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+    <!-- Keep in step with csharp/Softcore/Softcore.csproj <Version> and Plugin.Version -->
+    <Version>4.1.0</Version>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+
+    <SptDir Condition="'$(SptDir)' == ''">$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)\..\..\..\'))</SptDir>
+    <SptManagedDir>$(SptDir)EscapeFromTarkov_Data\Managed\</SptManagedDir>
+    <SptBepInExCoreDir>$(SptDir)BepInEx\core\</SptBepInExCoreDir>
+    <SptPluginsDir>$(SptDir)BepInEx\plugins\</SptPluginsDir>
+    <!-- 4.1 deobfuscates Managed\Assembly-CSharp.dll in place on the first launch (wiki Client_Modding_Quick_Guide
+         step 1.5); if a build cannot find EFT.Skill, point this at BepInEx\DumpedAssemblies\EscapeFromTarkov\ -->
+    <AssemblyCSharpDir Condition="'$(AssemblyCSharpDir)' == ''">$(SptManagedDir)</AssemblyCSharpDir>
+    <!-- Post-build install target; empty disables the copy -->
+    <DeployDir Condition="'$(DeployDir)' == ''">$(SptPluginsDir)Softcore\</DeployDir>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp" HintPath="$(AssemblyCSharpDir)Assembly-CSharp.dll" Private="false" />
+    <Reference Include="Comfort" HintPath="$(SptManagedDir)Comfort.dll" Private="false" />
+    <Reference Include="Comfort.Unity" HintPath="$(SptManagedDir)Comfort.Unity.dll" Private="false" />
+    <Reference Include="Newtonsoft.Json" HintPath="$(SptManagedDir)Newtonsoft.Json.dll" Private="false" />
+    <Reference Include="Unity.TextMeshPro" HintPath="$(SptManagedDir)Unity.TextMeshPro.dll" Private="false" />
+    <Reference Include="UnityEngine" HintPath="$(SptManagedDir)UnityEngine.dll" Private="false" />
+    <Reference Include="UnityEngine.AssetBundleModule" HintPath="$(SptManagedDir)UnityEngine.AssetBundleModule.dll" Private="false" />
+    <Reference Include="UnityEngine.CoreModule" HintPath="$(SptManagedDir)UnityEngine.CoreModule.dll" Private="false" />
+    <Reference Include="UnityEngine.TextRenderingModule" HintPath="$(SptManagedDir)UnityEngine.TextRenderingModule.dll" Private="false" />
+    <Reference Include="UnityEngine.UI" HintPath="$(SptManagedDir)UnityEngine.UI.dll" Private="false" />
+    <Reference Include="UnityEngine.UIModule" HintPath="$(SptManagedDir)UnityEngine.UIModule.dll" Private="false" />
+    <Reference Include="0Harmony" HintPath="$(SptBepInExCoreDir)0Harmony.dll" Private="false" />
+    <Reference Include="BepInEx" HintPath="$(SptBepInExCoreDir)BepInEx.dll" Private="false" />
+    <Reference Include="spt-common" HintPath="$(SptPluginsDir)spt\spt-common.dll" Private="false" />
+    <Reference Include="spt-reflection" HintPath="$(SptPluginsDir)spt\spt-reflection.dll" Private="false" />
+  </ItemGroup>
+
+  <!-- Fail before the compiler does, with the path that was tried, instead of 200 "type not found" errors -->
+  <Target Name="CheckSptDir" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="!Exists('$(AssemblyCSharpDir)Assembly-CSharp.dll')"
+           Text="Assembly-CSharp.dll not found at '$(AssemblyCSharpDir)'. SptDir resolved to '$(SptDir)'; check out the repo under &lt;SPT&gt;\Development\ODT-Softcore or build with -p:SptDir=&lt;SPT root, trailing slash&gt;" />
+    <Error Condition="!Exists('$(SptPluginsDir)spt\spt-reflection.dll')"
+           Text="spt-reflection.dll not found at '$(SptPluginsDir)spt\'. Is '$(SptDir)' an SPT 4.1 install?" />
+  </Target>
+
+  <!-- dotnet build → <SPT>\BepInEx\plugins\Softcore\Softcore.Client.dll (+ Assets\ once there are any) -->
+  <Target Name="Deploy" AfterTargets="Build" Condition="'$(DeployDir)' != ''">
+    <ItemGroup>
+      <DeployAssets Include="$(MSBuildProjectDirectory)\Assets\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(DeployDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(DeployAssets)" DestinationFiles="@(DeployAssets->'$(DeployDir)Assets\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Message Importance="High" Text="Deployed $(TargetFileName) to $(DeployDir)" />
+  </Target>
+</Project>
