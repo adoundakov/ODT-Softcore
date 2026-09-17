@@ -1,0 +1,115 @@
+[Info   :Softcore Client] [Softcore probe] SkillsAndMasteringScreen.Show
+fields:
+  public PlayerExperiencePanel _playerExperiencePanel
+  public SkillsScreen _skillsScreen
+  public MasteringScreen _masteringScreen
+  public Tab _skillsTab
+  public Tab _masteringTab
+  private TabGroup _skillMasterTabGroup
+  private UIParent UI
+hierarchy of _playerExperiencePanel (depth 4):
+Progress Panel  [RectTransform, CanvasRenderer, Image, PlayerExperiencePanel]  pos=(0.00, -43.00) size=(0.00, 159.00) anchors=(0.00, 1.00)-(1.00, 1.00)
+  Current Level Panel  [RectTransform, CanvasRenderer, PlayerLevelPanel]  pos=(136.00, -2.00) size=(198.00, 96.00) anchors=(0.00, 0.50)-(0.00, 0.50)
+    Level Icon  [RectTransform, CanvasRenderer, Image]  pos=(54.00, 1.00) size=(100.00, 100.00) anchors=(0.00, 0.50)-(0.00, 0.50)
+    Level  [RectTransform, CanvasRenderer, CustomTextMeshProUGUI, ContentSizeFitter]  pos=(109.00, 38.00) size=(46.70, 71.51) anchors=(0.00, 0.50)-(0.00, 0.50)
+  Next Level Panel  [RectTransform, CanvasRenderer, PlayerLevelPanel]  pos=(-177.00, -2.00) size=(198.00, 96.00) anchors=(1.00, 0.50)-(1.00, 0.50)
+    Level Icon  [RectTransform, CanvasRenderer, Image]  pos=(54.00, 1.00) size=(100.00, 100.00) anchors=(0.00, 0.50)-(0.00, 0.50)
+    Level  [RectTransform, CanvasRenderer, CustomTextMeshProUGUI, ContentSizeFitter]  pos=(109.00, 38.00) size=(58.88, 71.51) anchors=(0.00, 0.50)-(0.00, 0.50)
+  Current Text  [RectTransform, CanvasRenderer, CustomTextMeshProUGUI]  pos=(344.00, -19.00) size=(300.00, 27.00) anchors=(0.00, 0.50)-(0.00, 0.50)
+  Remaining Text  [RectTransform, CanvasRenderer, CustomTextMeshProUGUI]  pos=(-386.00, -19.00) size=(300.00, 27.00) anchors=(1.00, 0.50)-(1.00, 0.50)
+  Bar  [RectTransform, CanvasRenderer, TwoValueBar]  pos=(-21.00, -60.00) size=(-736.00, 19.00) anchors=(0.00, 1.00)-(1.00, 1.00)
+    Background  [RectTransform, CanvasRenderer, Image]  pos=(0.00, 0.00) size=(8.00, 8.00) anchors=(0.00, 0.00)-(1.00, 1.00)
+    New Fill  [RectTransform, CanvasRenderer, Image]  pos=(2.00, 0.00) size=(-2.00, 0.00) anchors=(0.19, 0.00)-(0.19, 1.00)
+    New Glow  [RectTransform, CanvasRenderer, Image]  pos=(0.00, 0.00) size=(74.00, 0.00) anchors=(0.19, 0.00)-(0.19, 1.00)
+      Pointer  [RectTransform, CanvasRenderer, Image]  pos=(0.00, 22.00) size=(18.00, 16.00) anchors=(1.00, 0.50)-(1.00, 0.50)
+      Experience  [RectTransform, CanvasRenderer, CustomTextMeshProUGUI, ContentSizeFitter]  pos=(-9.00, 47.00) size=(73.71, 26.40) anchors=(1.00, 0.50)-(1.00, 0.50)
+        Icon  [RectTransform, CanvasRenderer, Image]  pos=(4.00, 0.00) size=(44.00, 31.00) anchors=(1.00, 0.50)-(1.00, 0.50)
+    Base Fill  [RectTransform, CanvasRenderer, Image]  pos=(0.00, 0.00) size=(0.00, 0.00) anchors=(0.00, 0.00)-(0.19, 1.00)
+hierarchy of the screen (depth 2):
+SkillsAndMasteringPanel  [RectTransform, SkillsAndMasteringScreen]  pos=(0.00, 17.00) size=(0.00, -34.00) anchors=(0.00, 0.00)-(1.00, 1.00)
+  Caption Bar  [RectTransform]  pos=(191.00, -293.00) size=(-361.00, 50.00) anchors=(0.00, 1.00)-(1.00, 1.00)
+    Tabs  [RectTransform]  pos=(0.00, 0.00) size=(0.00, 0.00) anchors=(0.00, 0.00)-(1.00, 1.00)
+  TopPanel  [RectTransform, CanvasRenderer, Image]  pos=(0.00, -39.00) size=(0.00, 255.00) anchors=(0.00, 1.00)-(1.00, 1.00)
+    Progress Panel  [RectTransform, CanvasRenderer, Image, PlayerExperiencePanel]  pos=(0.00, -43.00) size=(0.00, 159.00) anchors=(0.00, 1.00)-(1.00, 1.00)
+  BottomPanel  [RectTransform, CanvasRenderer, Image]  pos=(0.00, -146.50) size=(0.00, -293.00) anchors=(0.00, 0.00)-(1.00, 1.00)
+    SkillsPanel  [RectTransform, SkillsScreen]  pos=(0.00, 0.00) size=(0.00, 0.00) anchors=(0.00, 0.00)-(1.00, 1.00)
+    MasteringPanel  [RectTransform, MasteringScreen]  pos=(0.00, 0.00) size=(0.00, 0.00) anchors=(0.00, 0.00)-(1.00, 1.00)  (inactive)
+
+[Info   :Softcore Client] [Softcore probe] SkillPanel.Show(EFT.Skill)
+fields:
+  public TextMeshProUGUI _level
+  public TextMeshProUGUI _name
+  public BuffIcon _buffIconTemplate
+  public Transform _buffsContainer
+  public Image _currentProgressFill
+  public Image _baseProgressFill
+  public RectTransform _currentProgressValueTransform
+  public TextMeshProUGUI _currentProgressValueText
+  public GameObject _currentProgressValueGameObject
+  public SkillIcon _skillIcon
+  public Sprite _normalFillSprite
+  public Sprite _eliteFillSprite
+  public CanvasGroup _alphaBlockedSkill
+  public GameObject _effectivenessUp
+  public GameObject _effectivenessDown
+  private SkillTooltip _tooltip
+  private ViewList`2 _buffIcons
+  private Skill _skill
+  private IHealthController _healthController
+  private UIParent UI
+hierarchy from the SkillPanel's transform:
+Detailed Skill Panel(Clone)  [RectTransform, LayoutElement, SkillPanel, SkillIcon, CanvasGroup]  pos=(6.00, -100.00) size=(824.00, 100.00) anchors=(0.00, 1.00)-(0.00, 1.00)
+  Skill Class Icon  [RectTransform, CanvasRenderer, SkillClassIcon]  pos=(110.00, -2.00) size=(-120.00, 25.00) anchors=(0.00, 1.00)-(1.00, 1.00)
+    Background  [RectTransform, CanvasRenderer, Image]  pos=(0.00, -25.00) size=(25.00, 25.00) anchors=(0.00, 1.00)-(0.00, 1.00)
+      Symbol  [RectTransform, CanvasRenderer, CustomTextMeshProUGUI]  pos=(12.50, 0.00) size=(20.00, 20.00) anchors=(0.00, 0.50)-(0.00, 0.50)
+    Name  [RectTransform, CanvasRenderer, TextMeshProUGUI]  pos=(28.00, -12.50) size=(199.88, 19.80) anchors=(0.00, 1.00)-(0.00, 1.00)
+  Level  [RectTransform, CanvasRenderer, TextMeshProUGUI]  pos=(113.00, -70.00) size=(-263.00, 21.00) anchors=(0.00, 1.00)-(1.00, 1.00)
+  Buffs  [RectTransform, HorizontalLayoutGroup, ContentSizeFitter]  pos=(-1.00, -5.00) size=(0.00, 0.00) anchors=(1.00, 1.00)-(1.00, 1.00)
+    Buff Icon  [RectTransform, CanvasRenderer, LayoutElement, BuffIcon]  pos=(24.00, 0.00) size=(24.00, 22.00) anchors=(0.00, 1.00)-(0.00, 1.00)  (inactive)
+      Background  [RectTransform, CanvasRenderer, Image]  pos=(0.00, 0.00) size=(24.00, 22.00) anchors=(0.00, 0.00)-(0.00, 0.00)
+      Image  [RectTransform, CanvasRenderer, Image]  pos=(3.00, 2.00) size=(19.00, 18.00) anchors=(0.00, 0.00)-(0.00, 0.00)
+    Buff Icon(Clone)  [RectTransform, CanvasRenderer, LayoutElement, BuffIcon]  pos=(24.00, 0.00) size=(24.00, 22.00) anchors=(0.00, 1.00)-(0.00, 1.00)
+      Background  [RectTransform, CanvasRenderer, Image]  pos=(0.00, 0.00) size=(24.00, 22.00) anchors=(0.00, 0.00)-(0.00, 0.00)
+      Image  [RectTransform, CanvasRenderer, Image]  pos=(3.00, 2.00) size=(19.00, 18.00) anchors=(0.00, 0.00)-(0.00, 0.00)
+    Buff Icon(Clone)  [RectTransform, CanvasRenderer, LayoutElement, BuffIcon]  pos=(24.00, 0.00) size=(24.00, 22.00) anchors=(0.00, 1.00)-(0.00, 1.00)
+      Background  [RectTransform, CanvasRenderer, Image]  pos=(0.00, 0.00) size=(24.00, 22.00) anchors=(0.00, 0.00)-(0.00, 0.00)
+      Image  [RectTransform, CanvasRenderer, Image]  pos=(3.00, 2.00) size=(19.00, 18.00) anchors=(0.00, 0.00)-(0.00, 0.00)
+    Buff Icon(Clone)  [RectTransform, CanvasRenderer, LayoutElement, BuffIcon]  pos=(24.00, 0.00) size=(24.00, 22.00) anchors=(0.00, 1.00)-(0.00, 1.00)  (inactive)
+      Background  [RectTransform, CanvasRenderer, Image]  pos=(0.00, 0.00) size=(24.00, 22.00) anchors=(0.00, 0.00)-(0.00, 0.00)
+      Image  [RectTransform, CanvasRenderer, Image]  pos=(3.00, 2.00) size=(19.00, 18.00) anchors=(0.00, 0.00)-(0.00, 0.00)
+    Buff Icon(Clone)  [RectTransform, CanvasRenderer, LayoutElement, BuffIcon]  pos=(24.00, 0.00) size=(24.00, 22.00) anchors=(0.00, 1.00)-(0.00, 1.00)  (inactive)
+      Background  [RectTransform, CanvasRenderer, Image]  pos=(0.00, 0.00) size=(24.00, 22.00) anchors=(0.00, 0.00)-(0.00, 0.00)
+      Image  [RectTransform, CanvasRenderer, Image]  pos=(3.00, 2.00) size=(19.00, 18.00) anchors=(0.00, 0.00)-(0.00, 0.00)
+    Buff Icon(Clone)  [RectTransform, CanvasRenderer, LayoutElement, BuffIcon]  pos=(24.00, 0.00) size=(24.00, 22.00) anchors=(0.00, 1.00)-(0.00, 1.00)
+      Background  [RectTransform, CanvasRenderer, Image]  pos=(0.00, 0.00) size=(24.00, 22.00) anchors=(0.00, 0.00)-(0.00, 0.00)
+      Image  [RectTransform, CanvasRenderer, Image]  pos=(3.00, 2.00) size=(19.00, 18.00) anchors=(0.00, 0.00)-(0.00, 0.00)
+    Buff Icon(Clone)  [RectTransform, CanvasRenderer, LayoutElement, BuffIcon]  pos=(24.00, 0.00) size=(24.00, 22.00) anchors=(0.00, 1.00)-(0.00, 1.00)
+      Background  [RectTransform, CanvasRenderer, Image]  pos=(0.00, 0.00) size=(24.00, 22.00) anchors=(0.00, 0.00)-(0.00, 0.00)
+      Image  [RectTransform, CanvasRenderer, Image]  pos=(3.00, 2.00) size=(19.00, 18.00) anchors=(0.00, 0.00)-(0.00, 0.00)
+  Fill Bar  [RectTransform]  pos=(112.00, 34.00) size=(-113.00, 23.00) anchors=(0.00, 0.00)-(1.00, 0.00)
+    Border  [RectTransform, CanvasRenderer, Image]  pos=(0.00, 0.00) size=(4.00, 4.00) anchors=(0.00, 0.00)-(1.00, 1.00)
+    Current Fill  [RectTransform, CanvasRenderer, Image]  pos=(2.00, 0.00) size=(-4.00, -4.00) anchors=(0.00, 0.00)-(1.00, 1.00)
+      Progress  [RectTransform, CanvasRenderer, TextMeshProUGUI]  pos=(0.00, 0.00) size=(396.00, 18.00) anchors=(0.03, 1.00)-(0.03, 1.00)
+        TMP SubMeshUI [Jovanny Lemonad - Bender Normal Material + Jovanny Lemonad - Bender Bold Atlas]  [RectTransform, CanvasRenderer]  pos=(0.00, 0.00) size=(0.00, 0.00) anchors=(0.00, 0.00)-(1.00, 1.00)
+    Base Fill  [RectTransform, CanvasRenderer, Image]  pos=(2.00, 0.00) size=(-4.00, -4.00) anchors=(0.00, 0.00)-(1.00, 1.00)
+    Container  [RectTransform]  pos=(-6.57, 0.00) size=(15.00, 21.00) anchors=(1.00, 0.50)-(1.00, 0.50)
+      EffectivenessUp  [RectTransform, CanvasRenderer, Image]  pos=(0.00, 0.00) size=(15.00, 13.00) anchors=(0.50, 0.50)-(0.50, 0.50)  (inactive)
+      EffectivenessDown  [RectTransform, CanvasRenderer, Image]  pos=(7.50, -1.00) size=(15.00, 13.00) anchors=(0.00, 0.50)-(0.00, 0.50)  (inactive)
+  Skill Icon  [RectTransform]  pos=(0.00, 0.00) size=(96.00, 96.00) anchors=(0.00, 0.00)-(0.00, 0.00)
+    Border  [RectTransform, CanvasRenderer, Image]  pos=(0.00, 0.00) size=(8.00, 8.00) anchors=(0.00, 0.00)-(1.00, 1.00)
+    Background  [RectTransform, CanvasRenderer, Image]  pos=(-6.00, -7.00) size=(109.00, 109.00) anchors=(0.00, 0.00)-(0.00, 0.00)
+    IconContainer  [RectTransform, CanvasRenderer, NonDrawingGraphic, CanvasGroup, HoverTooltipArea]  pos=(3.00, 3.00) size=(90.00, 90.00) anchors=(0.00, 0.00)-(0.00, 0.00)
+      Skill Image  [RectTransform, CanvasRenderer, Image, HoverTrigger]  pos=(0.00, 0.00) size=(90.00, 90.00) anchors=(0.50, 0.50)-(0.50, 0.50)
+    Level Panel  [RectTransform, CanvasRenderer, SkillLevelPanel]  pos=(0.00, 0.00) size=(25.00, 25.00) anchors=(0.00, 0.00)-(0.00, 0.00)
+      Background  [RectTransform, CanvasRenderer, Image]  pos=(0.00, 0.00) size=(25.00, 25.00) anchors=(0.00, 0.00)-(0.00, 0.00)
+      Level  [RectTransform, CanvasRenderer, CustomTextMeshProUGUI]  pos=(0.00, 4.00) size=(20.00, 20.00) anchors=(0.50, 0.00)-(0.50, 0.00)
+      Elite Icon  [RectTransform, CanvasRenderer, Image]  pos=(0.00, -1.00) size=(14.00, 14.00) anchors=(0.50, 0.50)-(0.50, 0.50)  (inactive)
+    Mastering  [RectTransform, CanvasRenderer, Image]  pos=(-1.00, 0.00) size=(19.00, 25.00) anchors=(0.00, 0.00)-(0.00, 0.00)  (inactive)
+      Text  [RectTransform, CanvasRenderer, CustomTextMeshProUGUI, Outline]  pos=(18.00, 1.00) size=(17.00, 16.00) anchors=(0.00, 0.00)-(0.00, 0.00)
+  SkillBuff  [RectTransform, CanvasRenderer, SkillBuffIcon]  pos=(-364.00, 0.00) size=(-728.00, 0.00) anchors=(0.00, 0.00)-(1.00, 1.00)  (inactive)
+    Image  [RectTransform, CanvasRenderer, Image]  pos=(5.00, -5.00) size=(15.00, 13.00) anchors=(0.00, 1.00)-(0.00, 1.00)
+  Progress  [RectTransform, CanvasRenderer, TextMeshProUGUI]  pos=(821.00, -95.00) size=(57.00, 21.00) anchors=(0.00, 1.00)-(0.00, 1.00)
+    TMP SubMeshUI [Jovanny Lemonad - Bender Normal Material + Jovanny Lemonad - Bender Bold Atlas]  [RectTransform, CanvasRenderer]  pos=(0.00, 0.00) size=(0.00, 0.00) anchors=(0.00, 0.00)-(1.00, 1.00)
+_skillIcon is the same GameObject
+
+[Info   :  VisitAPI] [badge] 顶栏角标挂到昵称文字 'NicknameText'（字号 38.4）

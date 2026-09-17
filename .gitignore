@@ -12,3 +12,6 @@ csharp/**/obj/
 csharp/**/ReleaseZip/
 client/**/bin/
 client/**/obj/
+
+# Claude Code per-machine settings
+.claude/settings.local.json

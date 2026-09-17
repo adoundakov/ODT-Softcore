@@ -30,7 +30,8 @@ C# (SPT 4.1):
 cd csharp && dotnet build                 # Debug build, 0 warnings expected
 cd csharp && dotnet build -c Release      # + csharp/Softcore/ReleaseZip/DukeWendigo-Softcore-{version}.zip
 ```
-Local SPT server source for API lookups: `../server-csharp` (tag 4.1.5); examples: `../spt-server-mod-examples`.
+Local SPT server source for API lookups: `../server-csharp` (tag 4.1.5); examples: `../spt-server-mod-examples`
+(server) and `../spt-client-mod-examples` (BepInEx client, `ExamplePatches/` has `ModulePatch` samples).
 
 TypeScript (SPT 3.11, legacy):
 ```bash

@@ -33,7 +33,7 @@ public class Plugin : BaseUnityPlugin
     {
         Log = Logger;
 
-        var eftBuild = FileVersionInfo.GetVersionInfo(Paths.ExecutablePath).FilePrivatePart;
+        var eftBuild = FileVersionInfo.GetVersionInfo(BepInEx.Paths.ExecutablePath).FilePrivatePart;
         if (eftBuild != EftBuild)
         {
             Log.LogWarning($"Built against EFT {EftBuild}, running on {eftBuild} — patches may not bind");

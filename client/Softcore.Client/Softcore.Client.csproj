@@ -48,6 +48,8 @@
     <Reference Include="Comfort" HintPath="$(SptManagedDir)Comfort.dll" Private="false" />
     <Reference Include="Comfort.Unity" HintPath="$(SptManagedDir)Comfort.Unity.dll" Private="false" />
     <Reference Include="Newtonsoft.Json" HintPath="$(SptManagedDir)Newtonsoft.Json.dll" Private="false" />
+    <!-- EFT UI classes derive from Sirenix.Serialization.SerializedMonoBehaviour -->
+    <Reference Include="Sirenix.Serialization" HintPath="$(SptManagedDir)Sirenix.Serialization.dll" Private="false" />
     <Reference Include="Unity.TextMeshPro" HintPath="$(SptManagedDir)Unity.TextMeshPro.dll" Private="false" />
     <Reference Include="UnityEngine" HintPath="$(SptManagedDir)UnityEngine.dll" Private="false" />
     <Reference Include="UnityEngine.AssetBundleModule" HintPath="$(SptManagedDir)UnityEngine.AssetBundleModule.dll" Private="false" />

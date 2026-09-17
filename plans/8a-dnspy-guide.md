@@ -5,9 +5,8 @@
 written on the Mac. Nothing here needs the game running under a debugger — static decompilation covers items 1–4, and
 one throwaway logging patch covers item 5 (Unity hierarchy names never appear in a decompiler).
 **Status (2026-09-17):** §1–§4 done — build **40743**, full `Export to Project` dump at
-`~/Documents/git/dnspy-dump/Assembly-CSharp/` on the Mac (option A), findings recorded in plan 8 §6.3. Still open:
-which of the two `Assembly-CSharp.dll` files was exported (§1; the dump has `EFT.Skill` with the 4.1.4 `Class`
-field, so it is deobfuscated either way), and the §5 runtime probe, now optional (§5 explains why).
+`~/Documents/git/dnspy-dump/Assembly-CSharp/` on the Mac (option A), findings recorded in plan 8 §6.3. §1 resolved: `Managed\Assembly-CSharp.dll` is deobfuscated in place (the client project builds against it). §5 probe
+run on 2026-09-17, output in `8a-probe-output.log`, layout facts in §6. Nothing open.
 
 The wiki's `spt-wiki/modding/tutorials/debug_dnSpy.md` is about *live* debugging (development `UnityPlayer.dll`,
 attach to process, breakpoints). Skip it; it is slower to set up and gives nothing we need. Its Chapter 3 note about
@@ -228,9 +227,23 @@ expand one. Good for eyeballing; for a record, screenshot the expanded tree for 
 
 ## 6. Hand-back checklist
 
-- [x] Game build number — **40743**. Which `Assembly-CSharp.dll` was exported (§1): still to note
+- [x] Game build number — **40743**. Which `Assembly-CSharp.dll` was exported (§1): `Managed\` — the client project
+  compiles `EFT.UI.SkillPanel` / `SkillsAndMasteringScreen` straight from `Managed\Assembly-CSharp.dll` with the
+  default `AssemblyCSharpDir`, so it is the in-place deobfuscated one; §4.1 stays on `Managed\`.
 - [x] Option A folder on the Mac (`~/Documents/git/dnspy-dump`) + path added to `additionalDirectories`
-- [ ] `BepInEx\LogOutput.log` after the probe run (§5a), or screenshots (§5b) — optional, see §5
+- [x] `BepInEx\LogOutput.log` after the probe run (§5a) — saved as `plans/8a-probe-output.log` (2026-09-17, EFT 40743).
+  Layout facts for §7 step 6:
+  - `SkillPanel` row is `Detailed Skill Panel(Clone)` 824×100, and **`SkillIcon` sits on the same GameObject as
+    `SkillPanel`** (`_skillIcon == this`); the icon's visuals are the child `Skill Icon` (96×96 at bottom-left),
+    whose `Level Panel` (`SkillLevelPanel`, 25×25 at the icon's bottom-left corner) holds the small level number.
+  - The big level text `_level` is the child `Level` (anchored to the top edge, x=113, y=-70, stretches to the
+    right edge); `Fill Bar` runs along the bottom (y=34, stretching from x=112). Free space for +/− buttons is the
+    right end of the `Level` row, or the row's `Buffs` corner (top-right, `HorizontalLayoutGroup`).
+  - `_playerExperiencePanel` = `Progress Panel` (full width, 159 tall): `Current Text` (300×27,
+    `CustomTextMeshProUGUI`, left-anchored at x=344, y=-19) is the "current:" XP label to clone for the points label;
+    `Remaining Text` mirrors it on the right (x=-386). Both sit above the `Bar` (`TwoValueBar`, y=-60).
+  - Field visibility: every `[SerializeField]` on both classes is **public** (`_level`, `_skillIcon`,
+    `_playerExperiencePanel`, …) except `_tooltip`, `_skill`, `_healthController`, `_skillMasterTabGroup`.
 - [x] §4 surprises — recorded in plan 8 §6.3
 
 With those, §6.2 gets filled in and §7 steps 5–6 can be written on the Mac and only *built* on Windows.
