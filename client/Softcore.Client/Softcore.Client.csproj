@@ -32,6 +32,11 @@
     <DeployDir Condition="'$(DeployDir)' == ''">$(SptPluginsDir)Softcore\</DeployDir>
   </PropertyGroup>
 
+  <!-- dotnet build -p:Probe=true compiles Patches/Probes.cs (hierarchy dump, see plans/8a-dnspy-guide.md §5a) -->
+  <PropertyGroup Condition="'$(Probe)' == 'true'">
+    <DefineConstants>$(DefineConstants);PROBE</DefineConstants>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>

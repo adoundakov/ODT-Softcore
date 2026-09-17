@@ -111,22 +111,21 @@ blocker for step 5.
 
 ### 5a. Probe patch — in the repo's client project
 
-Build it inside `client/Softcore.Client` (added 2026-09-17). `Plugin.cs` enables every `ModulePatch` in the assembly
-through `PatchManager`, so a dropped-in file is live on the next build with no registration.
+The probe is committed as `client/Softcore.Client/Patches/Probes.cs`, wrapped in `#if PROBE`, so a normal build (Debug
+or Release) never compiles it. `Plugin.cs` enables every `ModulePatch` in the assembly through `PatchManager`, so
+nothing else needs registering.
 
 1. The repo must sit at `<SPT>\Development\ODT-Softcore`, or pass `-p:SptDir=<SPT root>\` to every `dotnet build`.
-2. Save the code below as `client/Softcore.Client/Patches/Probes.cs`.
-3. From `client/Softcore.Client`: `dotnet build`. The post-build step copies `Softcore.Client.dll` to
+2. From `client/Softcore.Client`: `dotnet build -p:Probe=true`. The post-build step copies `Softcore.Client.dll` to
    `<SPT>\BepInEx\plugins\Softcore\`. A "not found" error from the `CheckSptDir` target means `SptDir` is wrong;
-   200 "type not found" errors mean `Managed\Assembly-CSharp.dll` is not the deobfuscated one — build with
+   200 "type not found" errors mean `Managed\Assembly-CSharp.dll` is not the deobfuscated one — add
    `-p:AssemblyCSharpDir=<SPT>\BepInEx\DumpedAssemblies\EscapeFromTarkov\` (see §1) and note that in plan 8 §4.1.
-4. Launch SPT, log in, open the **Skills** tab in the character screen once (list view), quit.
-5. Send `<SPT>\BepInEx\LogOutput.log` — the blocks start with `[Softcore probe]`.
-6. **Delete `Probes.cs`** and rebuild (or delete `BepInEx\plugins\Softcore\Softcore.Client.dll`). It must not be
-   committed and must not ship.
+3. Launch SPT, log in, open the **Skills** tab in the character screen once (list view), quit.
+4. Send `<SPT>\BepInEx\LogOutput.log` — the blocks start with `[Softcore probe]`.
+5. Rebuild without the flag (`dotnet build`) to install a probe-free DLL again.
 
 `Plugin.Log` is the plugin's `ManualLogSource`. Fields are read through `AccessTools.Field` so the probe compiles
-whether the game's `[SerializeField]` fields are public (as in the dump) or private.
+whether the game's `[SerializeField]` fields are public (as in the dump) or private. The file, for reference:
 
 ```csharp
 using System.Linq;
