@@ -22,7 +22,8 @@ public class Plugin(
     CraftingChangesChanger craftingChanger,
     RefChangesChanger refChanger,
     QuestRewardsChanger questRewardsChanger,
-    GpCurrencyCoursePatch gpCurrencyCoursePatch) : IOnLoad
+    GpCurrencyCoursePatch gpCurrencyCoursePatch,
+    RefStandingOnKillPatch refStandingOnKillPatch) : IOnLoad
 {
     public Task OnLoadAsync(CancellationToken cancellationToken)
     {
@@ -51,6 +52,11 @@ public class Plugin(
         if (config.RefChanges.Enabled && config.RefChanges.BuysInGpCoins)
         {
             EnablePatch(gpCurrencyCoursePatch);
+        }
+
+        if (config.RefChanges.Enabled && config.RefChanges.StandingOnKill.Enabled)
+        {
+            EnablePatch(refStandingOnKillPatch);
         }
 
         logger.Success("[Softcore] All changes applied successfully");

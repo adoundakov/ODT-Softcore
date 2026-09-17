@@ -350,8 +350,51 @@ public class RefChangesConfig
     [JsonPropertyName("alsoBuysLegaMedals")]
     public bool AlsoBuysLegaMedals { get; set; } = true;
 
+    [JsonPropertyName("standingOnKill")]
+    public StandingOnKillConfig StandingOnKill { get; set; } = new();
+
     [JsonPropertyName("streamerItemCase")]
     public StreamerItemCaseConfig StreamerItemCase { get; set; } = new();
+}
+
+public class StandingOnKillConfig
+{
+    /// <summary>
+    /// Every PMC you kill raises Ref standing, scaled by the victim's level. For scale, Ref's loyalty
+    /// thresholds on 4.1.5 are standing 0 / 0.25 / 0.5 / 1.2 at PMC level 1 / 15 / 25 / 35, so LL2 is
+    /// roughly 60 mid-level kills at the defaults. Kills made as a Scav count too.
+    /// </summary>
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>Only credit kills when the raid ends survived. No standing when you die, go MIA or run through.</summary>
+    [JsonPropertyName("requireSurvival")]
+    public bool RequireSurvival { get; set; } = true;
+
+    /// <summary>Standing per kill by victim level. Half-open ranges: a level-10 victim matches [10, 30), not [0, 10).</summary>
+    [JsonPropertyName("repByKillLevel")]
+    public List<RepByKillLevelConfig> RepByKillLevel { get; set; } =
+    [
+        new() { MinLevel = 0, MaxLevel = 10, Rep = 0.003 },
+        new() { MinLevel = 10, MaxLevel = 30, Rep = 0.004 },
+        new() { MinLevel = 30, MaxLevel = 50, Rep = 0.006 },
+        new() { MinLevel = 50, MaxLevel = 9999, Rep = 0.01 },
+    ];
+}
+
+public class RepByKillLevelConfig
+{
+    /// <summary>Inclusive lower bound of the victim's level.</summary>
+    [JsonPropertyName("minLevel")]
+    public int MinLevel { get; set; }
+
+    /// <summary>Exclusive upper bound of the victim's level.</summary>
+    [JsonPropertyName("maxLevel")]
+    public int MaxLevel { get; set; }
+
+    /// <summary>Ref standing gained per kill in this range.</summary>
+    [JsonPropertyName("rep")]
+    public double Rep { get; set; }
 }
 
 public class StreamerItemCaseConfig

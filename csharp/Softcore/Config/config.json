@@ -69,6 +69,16 @@
     "buysInGpCoins": true,
     "onlyBuysDogtags": true,
     "alsoBuysLegaMedals": true,
+    "standingOnKill": {
+      "enabled": true,
+      "requireSurvival": true,
+      "repByKillLevel": [
+        { "minLevel": 0, "maxLevel": 10, "rep": 0.003 },
+        { "minLevel": 10, "maxLevel": 30, "rep": 0.004 },
+        { "minLevel": 30, "maxLevel": 50, "rep": 0.006 },
+        { "minLevel": 50, "maxLevel": 9999, "rep": 0.01 }
+      ]
+    },
     "streamerItemCase": {
       "enabled": true,
       "loyaltyLevel": 1,
