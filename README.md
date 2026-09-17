@@ -237,12 +237,16 @@ The build output folder is the installed mod as-is: `Softcore.dll` plus `config/
 Either unzip the Release zip into your SPT install root, or copy `csharp/Softcore/bin/Debug/Softcore/` to `<SPT>/SPT_Runtime/user/mods/DukeWendigo-Softcore/`. Restart the server after every copy; the mod reads its config once at startup and edits are picked up on the next restart. The server dashboard's config editor writes the same `config/config.json`.
 
 ### Client plugin (optional, Windows only)
-`client/Softcore.Client/` is a BepInEx 5 plugin: the skill points UI and the effective-level patches. It references DLLs from a game install, so it builds only next to one: check the repo out under `<SPT>\Development\ODT-Softcore` (or pass the install root with `-p:SptDir=D:\SPT\`, trailing slash) and run
+`client/Softcore.Client/` is a BepInEx 5 plugin: the skill points UI (+/− buttons on each skill row, "available skill points" in the header) and the patches that make allocated levels count. It references DLLs from a game install, so it builds only next to one: check the repo out under `<SPT>\Development\ODT-Softcore` (or pass the install root with `-p:SptDir=D:\SPT\`, trailing slash) and run
 ```bash
 cd client/Softcore.Client
 dotnet build                 # → <SPT>\BepInEx\plugins\Softcore\Softcore.Client.dll (copied automatically)
 ```
 `Softcore.slnx` at the repo root opens both projects in Visual Studio 2022 17.13+ or Rider. A Release build of the client (`dotnet build -c Release` in that folder) is picked up by the server's Release zip on the next `cd csharp && dotnet build -c Release` and lands in `BepInEx/plugins/Softcore/`.
+
+The plugin needs the matching server version: the state route carries a `version` field and the client switches itself off with a log line if it differs. Without the server mod (or with `skillChanges.skillPoints.enabled: false`) it logs "Skill points: off" and does nothing. The patches target EFT build 40743 (SPT 4.1.5); on another build every patch whose member moved fails on its own with the member name in `BepInEx/LogOutput.log`. Member names were taken from a dnSpy export of `Assembly-CSharp.dll` — see `plans/8-skill-points-plan.md` §6.3 for the list and `plans/8a-dnspy-guide.md` for how to redo it after a game update.
+
+How allocated levels are applied (`client/Softcore.Client/Patches/`): `BaseSkill.Level` answers natural + allocated for the player's skills only (bots and the Scav keep theirs); the seven members that turn XP into progress (`LevelExp`, `CalculateExpOnFirstLevels`, `BaseProgress`, `ProgressValue`, `CalculateRealEarnedExpForLobby`, `OnTrigger`, `LevelProgress`) run with the natural level so the skill keeps levelling at its own pace; `Skill.UpdateRules` (the buff recompute) always sees the effective level; and the `Unsubscribe()` that would freeze an elite skill's XP is skipped while only the allocation makes it elite. Known edge: a skill under natural level 9 with points on it earns slightly less workout XP (`WorkoutBehaviour` mixes both levels).
 
 ### Version bump
 Bump `<Version>` in `csharp/Softcore/Softcore.csproj` (names the zip), `Version` in `csharp/Softcore/ModMetadata.cs` (what the server reports), and `<Version>` + `Plugin.Version` in `client/Softcore.Client/`; `SptVersion` in `ModMetadata.cs` must stay in step with the `SPTushonka.*` package version.

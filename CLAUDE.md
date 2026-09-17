@@ -21,8 +21,12 @@ This is "ODT-Softcore", a mod for SPT (Single Player Tarkov) that rebalances the
 - `client/Softcore.Client/` — BepInEx 5 client plugin scaffold (`netstandard2.1`, Windows-only build: references
   the game DLLs from an SPT install found via the `SptDir` MSBuild property, default `..\..\..\` = repo under
   `<SPT>\Development\ODT-Softcore`). `Plugin.cs` enables every `SPT.Reflection.Patching.ModulePatch` in the
-  assembly via `PatchManager`; patches go under `Patches/`. Not in `csharp/Softcore.sln`; `Softcore.slnx` at the
-  root lists both projects. The Release zip includes it only when `client/Softcore.Client/bin/Release/` exists.
+  assembly via `PatchManager` and fetches the skill point state in `Start()`; patches go under `Patches/` (one
+  class per target — PatchManager only sees a class's own declared prefix/postfix), the state, level bookkeeping
+  and runtime-built UI under `SkillPoints/`. Member names come from the dnSpy export in `../dnspy-dump`
+  (EFT build 40743). Cannot be compiled on the Mac: write carefully, verify names against the dump. Not in
+  `csharp/Softcore.sln`; `Softcore.slnx` at the root lists both projects. The Release zip includes it only when
+  `client/Softcore.Client/bin/Release/` exists.
 - `src/` — the original TypeScript mod for SPT 3.11. Kept as the reference for porting; the rest of this file
   describes it.
 
