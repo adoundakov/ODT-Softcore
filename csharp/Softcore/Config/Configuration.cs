@@ -29,6 +29,9 @@ public class Configuration
     [JsonPropertyName("craftingChanges")]
     public CraftingChangesConfig CraftingChanges { get; set; } = new();
 
+    [JsonPropertyName("questRewards")]
+    public QuestRewardsConfig QuestRewards { get; set; } = new();
+
     /// <summary>False when config.json was missing and class-initializer defaults are in use.</summary>
     [JsonIgnore]
     public bool LoadedFromDisk { get; set; } = true;
@@ -318,6 +321,20 @@ public class CraftingChangesConfig
     /// </summary>
     [JsonPropertyName("additionalCraftingRecipes")]
     public bool AdditionalCraftingRecipes { get; set; } = true;
+}
+
+public class QuestRewardsConfig
+{
+    /// <summary>Master toggle for all quest reward changes below.</summary>
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>
+    /// Prapor's "Stirrup" additionally rewards an Ammunition Case on completion. Lifted from Geko's
+    /// Better Progression; gives an early, quest-gated route to the case the crafting tree builds on.
+    /// </summary>
+    [JsonPropertyName("stirrupAmmunitionCase")]
+    public bool StirrupAmmunitionCase { get; set; } = true;
 }
 
 /// <summary>Inclusive integer range.</summary>

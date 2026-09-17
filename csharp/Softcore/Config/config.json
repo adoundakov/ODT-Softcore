@@ -63,5 +63,9 @@
     "enabled": true,
     "craftingRebalance": true,
     "additionalCraftingRecipes": true
+  },
+  "questRewards": {
+    "enabled": true,
+    "stirrupAmmunitionCase": true
   }
 }
