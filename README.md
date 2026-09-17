@@ -4,7 +4,7 @@ BETA VERSION. WORK IN PROGRESS. Looking for community feedback. Use at your own 
 
 **Version 4.1.0 targets SPT 4.1.5** (C# server mod in `csharp/`; the `SPT411` branch name predates the 4.1.5 retarget).
 The TypeScript sources in `src/` are the SPT 3.11 mod and are kept as the reference for the port. Only the economy, trader and
-crafting features are ported so far, plus the Ref changes and quest rewards below — see `csharp/` and the Configuration section.
+crafting features are ported so far, plus the Ref changes, quest rewards and skill changes below — see `csharp/` and the Configuration section.
 
 Build: `cd csharp && dotnet build -c Release` → `csharp/Softcore/ReleaseZip/DukeWendigo-Softcore-4.1.0.zip`, unzip into your SPT folder.
 
@@ -48,6 +48,14 @@ Leveling traders and crafting is your only hope of survival.
 
 ## Quest rewards:
 - Prapor's "Stirrup" additionally rewards an Ammunition Case.
+
+## Skill changes (redesigned from Geko's Better Progression):
+- **Skill points**: one point per PMC level, spent from the skills screen on any skill, +1 level each. Retroactive — an existing profile gets its level's worth of points on install. Allocated levels count everywhere: skill buffs, hideout/quest/door requirements, elite status, Charisma prices.
+- The skill keeps levelling naturally underneath at its normal XP pace. When the natural level grows into the allocated one (`natural + allocated > 51`) the surplus points are refunded to the pool automatically; a skill that reaches 51 on its own ends with nothing allocated. Refunds are permanent and survive restarts.
+- Points are not refundable by hand by default (`enableDeallocation`): an allocation is a commitment.
+- State lives in the SPT profile itself (`"softcore"` key), so it saves, backs up and wipes with the profile.
+- The buttons and the "available points" label need the **Softcore client plugin** (see Building from source). Without it the server still tracks and serves the state and everything else works.
+- Skill XP fatigue is softened: fresh XP ×2 for the first 2 points, then fatigue down to ×0.4 instead of ×0.0001.
 
 ## Hideout features:
 - 100x faster hideout construction.
@@ -182,6 +190,31 @@ SPT server dashboard's config editor rewrites it through `System.Text.Json`. Cha
 | `enabled` | `true` | Master toggle for all quest reward changes below. |
 | `stirrupAmmunitionCase` | `true` | Prapor's "Stirrup" additionally rewards an Ammunition Case on completion. Same reward id as Geko's Better Progression, so a profile coming from that mod sees the same reward. |
 
+### `skillChanges`
+| Option | Default | Description |
+|---|---|---|
+| `enabled` | `true` | Master toggle for all skill changes below. |
+
+#### `skillChanges.skillPoints`
+| Option | Default | Description |
+|---|---|---|
+| `enabled` | `true` | One skill point per PMC level, freely allocated to any skill. Off: the state routes answer `enabled = false` and a client plugin left installed shows nothing. |
+| `pointsPerLevel` | `1.0` | Points per PMC level; total = floor(level × this). Fractions accumulate: 1.5 gives 3 points every 2 levels. Lowering it under a profile's spent points does not deallocate anything — available reads 0 until levels catch up. |
+| `enableDeallocation` | `false` | Allow taking allocated points back with a −1 button. |
+
+Rules, for the record: total = floor(level × `pointsPerLevel`); a skill's effective level = min(natural + allocated, 51); +1 is refused when no points are available or the skill is at 51; whenever natural + allocated > 51 the surplus is refunded (checked every time the state is read or changed, and saved). Prestige resets the PMC level, so total drops under the spent points — nothing is deallocated, available reads 0 until levels catch up.
+
+#### `skillChanges.fatigue`
+Vanilla 4.1.5 values: fresh effectiveness 1.3, fresh points 1, points before fatigue 1, min effectiveness 0.0001.
+
+| Option | Default | Description |
+|---|---|---|
+| `enabled` | `true` | Apply the four skill XP fatigue globals below. |
+| `skillFreshEffectiveness` | `2` | XP multiplier for "fresh" skill XP (a skill not levelled recently this raid). |
+| `skillFreshPoints` | `2` | Full skill points that count as fresh before XP drops back to the normal rate. |
+| `skillPointsBeforeFatigue` | `1` | Points earned at the normal rate (after the fresh ones) before fatigue kicks in. |
+| `skillMinEffectiveness` | `0.4` | Fatigue reduces XP gradually down to this multiplier. |
+
 ## Building from source:
 
 The mod is a C# server mod for SPT 4.1.5. It builds on Windows, macOS and Linux the same way and needs nothing from the game install: all SPT dependencies (`SPTushonka.*` 4.1.5) come from nuget.org.
@@ -204,7 +237,7 @@ The build output folder is the installed mod as-is: `Softcore.dll` plus `config/
 Either unzip the Release zip into your SPT install root, or copy `csharp/Softcore/bin/Debug/Softcore/` to `<SPT>/SPT_Runtime/user/mods/DukeWendigo-Softcore/`. Restart the server after every copy; the mod reads its config once at startup and edits are picked up on the next restart. The server dashboard's config editor writes the same `config/config.json`.
 
 ### Client plugin (optional, Windows only)
-`client/Softcore.Client/` is a BepInEx 5 plugin; it currently only logs. It references DLLs from a game install, so it builds only next to one: check the repo out under `<SPT>\Development\ODT-Softcore` (or pass the install root with `-p:SptDir=D:\SPT\`, trailing slash) and run
+`client/Softcore.Client/` is a BepInEx 5 plugin: the skill points UI and the effective-level patches. It references DLLs from a game install, so it builds only next to one: check the repo out under `<SPT>\Development\ODT-Softcore` (or pass the install root with `-p:SptDir=D:\SPT\`, trailing slash) and run
 ```bash
 cd client/Softcore.Client
 dotnet build                 # → <SPT>\BepInEx\plugins\Softcore\Softcore.Client.dll (copied automatically)
@@ -217,12 +250,10 @@ Bump `<Version>` in `csharp/Softcore/Softcore.csproj` (names the zip), `Version`
 ### Legacy TypeScript mod (SPT 3.11 only)
 `src/` is the original 3.11 mod, kept as the porting reference. It does not run on 4.x. Build it with Node 20 (`.nvmrc`): `npm run setup` once, then `npm run build` → `dist/softcore-{version}.zip`.
 
-### Client plugin
-Not part of the build yet. When it lands it will be a BepInEx plugin under `client/` that needs a Windows machine with SPT installed, because the game assemblies it references are not on NuGet. The server mod works without it.
-
 ## Compatibility:
 - The two Ref patches are Harmony postfixes and compose with other mods patching the same methods. The kill-standing patch replaces the returned `Task` of `EndLocalRaidAsync` with a continuation; a mod that also postfixes that method sees our task and everything still runs in order.
-- Geko's Better Progression: don't enable its `refChanges` alongside ours, the standing would be credited twice.
+- Geko's Better Progression: don't enable its `refChanges` alongside ours, the standing would be credited twice. Don't run its skill points system alongside ours either — both patch `Skill.Level`.
+- Skill points routes: `POST /softcore/skillpoints/state` (empty body) and `POST /softcore/skillpoints/allocate` (`{"skill":"Endurance","delta":1}`), both answering the raw state JSON `{version, enabled, total, available, maxLevel, deallocationEnabled, allocated: {name: levels}, error?}`. The session comes from SPT's request header.
 
 ## Notes:
 - No, you cannot use your new fastly mined bitcoins for barters. Because of well, reasons. Like inflation, man. It hits all of us. No one cares about crypto anymore, except you and your nerd friend Mechanic. 
