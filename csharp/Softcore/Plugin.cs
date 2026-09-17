@@ -43,6 +43,7 @@ public class Plugin(
         logger.Info($"[Softcore] Economy enabled: {config.EconomyOptions.Enabled}");
         logger.Info($"[Softcore] Barter economy enabled: {config.EconomyOptions.BarterEconomy.Enabled}");
         logger.Info($"[Softcore] Trader changes enabled: {config.TraderChanges.Enabled}");
+        logger.Info($"[Softcore] Skill points enabled: {config.SkillChanges.Enabled && config.SkillChanges.SkillPoints.Enabled}");
 
         economyChanger.Apply(config.EconomyOptions);
         traderChanger.Apply(config.TraderChanges);
