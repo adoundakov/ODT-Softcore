@@ -22,6 +22,7 @@ public class Plugin(
     CraftingChangesChanger craftingChanger,
     RefChangesChanger refChanger,
     QuestRewardsChanger questRewardsChanger,
+    SkillChangesChanger skillChangesChanger,
     GpCurrencyCoursePatch gpCurrencyCoursePatch,
     RefStandingOnKillPatch refStandingOnKillPatch) : IOnLoad
 {
@@ -48,6 +49,7 @@ public class Plugin(
         craftingChanger.Apply(config.CraftingChanges);
         refChanger.Apply(config.RefChanges);
         questRewardsChanger.Apply(config.QuestRewards);
+        skillChangesChanger.Apply(config.SkillChanges);
 
         if (config.RefChanges.Enabled && config.RefChanges.BuysInGpCoins)
         {

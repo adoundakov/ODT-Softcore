@@ -35,6 +35,9 @@ public class Configuration
     [JsonPropertyName("questRewards")]
     public QuestRewardsConfig QuestRewards { get; set; } = new();
 
+    [JsonPropertyName("skillChanges")]
+    public SkillChangesConfig SkillChanges { get; set; } = new();
+
     /// <summary>False when config.json was missing and class-initializer defaults are in use.</summary>
     [JsonIgnore]
     public bool LoadedFromDisk { get; set; } = true;
@@ -428,6 +431,66 @@ public class QuestRewardsConfig
     /// </summary>
     [JsonPropertyName("stirrupAmmunitionCase")]
     public bool StirrupAmmunitionCase { get; set; } = true;
+}
+
+public class SkillChangesConfig
+{
+    /// <summary>Master toggle for all skill changes below.</summary>
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    [JsonPropertyName("skillPoints")]
+    public SkillPointsConfig SkillPoints { get; set; } = new();
+
+    [JsonPropertyName("fatigue")]
+    public SkillFatigueConfig Fatigue { get; set; } = new();
+}
+
+public class SkillPointsConfig
+{
+    /// <summary>
+    /// One skill point per PMC level, freely allocated to any skill from the skills screen. Allocated
+    /// levels count everywhere (buffs, requirements, elite status) and are refunded automatically as the
+    /// skill levels naturally underneath. Retroactive: an existing profile gets its level's worth of
+    /// points. Needs the Softcore client plugin for the UI; without it the server only serves the
+    /// state routes. Redesigned from Geko's Better Progression, state lives in the SPT profile.
+    /// </summary>
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>Points per PMC level. Fractions accumulate: 1.5 gives 3 points every 2 levels.</summary>
+    [JsonPropertyName("pointsPerLevel")]
+    public double PointsPerLevel { get; set; } = 1.0;
+
+    /// <summary>Allow taking allocated points back. Off by default: an allocation is a commitment.</summary>
+    [JsonPropertyName("enableDeallocation")]
+    public bool EnableDeallocation { get; set; } = false;
+}
+
+public class SkillFatigueConfig
+{
+    /// <summary>
+    /// Skill XP fatigue globals, Geko's Better Progression values. Vanilla 4.1.5: fresh effectiveness
+    /// 1.3, fresh points 1, points before fatigue 1, min effectiveness 0.0001.
+    /// </summary>
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>XP multiplier for "fresh" skill XP (a skill not levelled recently this raid).</summary>
+    [JsonPropertyName("skillFreshEffectiveness")]
+    public double SkillFreshEffectiveness { get; set; } = 2;
+
+    /// <summary>Full skill points that count as fresh before XP drops back to the normal rate.</summary>
+    [JsonPropertyName("skillFreshPoints")]
+    public double SkillFreshPoints { get; set; } = 2;
+
+    /// <summary>Points earned at the normal rate (after the fresh ones) before fatigue kicks in.</summary>
+    [JsonPropertyName("skillPointsBeforeFatigue")]
+    public double SkillPointsBeforeFatigue { get; set; } = 1;
+
+    /// <summary>Fatigue reduces XP gradually down to this multiplier.</summary>
+    [JsonPropertyName("skillMinEffectiveness")]
+    public double SkillMinEffectiveness { get; set; } = 0.4;
 }
 
 /// <summary>Inclusive integer range.</summary>

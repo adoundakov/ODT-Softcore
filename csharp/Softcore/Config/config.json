@@ -89,5 +89,20 @@
   "questRewards": {
     "enabled": true,
     "stirrupAmmunitionCase": true
+  },
+  "skillChanges": {
+    "enabled": true,
+    "skillPoints": {
+      "enabled": true,
+      "pointsPerLevel": 1.0,
+      "enableDeallocation": false
+    },
+    "fatigue": {
+      "enabled": true,
+      "skillFreshEffectiveness": 2,
+      "skillFreshPoints": 2,
+      "skillPointsBeforeFatigue": 1,
+      "skillMinEffectiveness": 0.4
+    }
   }
 }
