@@ -18,6 +18,7 @@ public class Plugin(
     EconomyOptionsChanger economyChanger,
     TraderChangesChanger traderChanger,
     CraftingChangesChanger craftingChanger,
+    RefChangesChanger refChanger,
     QuestRewardsChanger questRewardsChanger) : IOnLoad
 {
     public Task OnLoadAsync(CancellationToken cancellationToken)
@@ -41,6 +42,7 @@ public class Plugin(
         economyChanger.Apply(config.EconomyOptions);
         traderChanger.Apply(config.TraderChanges);
         craftingChanger.Apply(config.CraftingChanges);
+        refChanger.Apply(config.RefChanges);
         questRewardsChanger.Apply(config.QuestRewards);
 
         logger.Success("[Softcore] All changes applied successfully");

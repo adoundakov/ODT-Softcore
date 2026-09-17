@@ -29,6 +29,9 @@ public class Configuration
     [JsonPropertyName("craftingChanges")]
     public CraftingChangesConfig CraftingChanges { get; set; } = new();
 
+    [JsonPropertyName("refChanges")]
+    public RefChangesConfig RefChanges { get; set; } = new();
+
     [JsonPropertyName("questRewards")]
     public QuestRewardsConfig QuestRewards { get; set; } = new();
 
@@ -321,6 +324,35 @@ public class CraftingChangesConfig
     /// </summary>
     [JsonPropertyName("additionalCraftingRecipes")]
     public bool AdditionalCraftingRecipes { get; set; } = true;
+}
+
+public class RefChangesConfig
+{
+    /// <summary>Master toggle for all Ref changes below. Lifted from Geko's Better Progression.</summary>
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    [JsonPropertyName("streamerItemCase")]
+    public StreamerItemCaseConfig StreamerItemCase { get; set; } = new();
+}
+
+public class StreamerItemCaseConfig
+{
+    /// <summary>Ref sells the Streamer Item Case for GP coins. Not in his vanilla assort.</summary>
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>Ref loyalty level the barter unlocks at (1–4).</summary>
+    [JsonPropertyName("loyaltyLevel")]
+    public int LoyaltyLevel { get; set; } = 1;
+
+    /// <summary>Price in GP coins.</summary>
+    [JsonPropertyName("gpPrice")]
+    public int GpPrice { get; set; } = 50;
+
+    /// <summary>Buy limit per trader restock.</summary>
+    [JsonPropertyName("buyLimit")]
+    public int BuyLimit { get; set; } = 3;
 }
 
 public class QuestRewardsConfig

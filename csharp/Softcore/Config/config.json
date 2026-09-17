@@ -64,6 +64,15 @@
     "craftingRebalance": true,
     "additionalCraftingRecipes": true
   },
+  "refChanges": {
+    "enabled": true,
+    "streamerItemCase": {
+      "enabled": true,
+      "loyaltyLevel": 1,
+      "gpPrice": 50,
+      "buyLimit": 3
+    }
+  },
   "questRewards": {
     "enabled": true,
     "stirrupAmmunitionCase": true
