@@ -3,6 +3,7 @@ using System.Diagnostics;
 using BepInEx;
 using BepInEx.Logging;
 using SPT.Reflection.Patching;
+using Softcore.Client.SkillPoints;
 
 namespace Softcore.Client;
 
@@ -51,5 +52,21 @@ public class Plugin : BaseUnityPlugin
         }
 
         Log.LogInfo($"{Name} {Version} loaded (EFT {eftBuild})");
+    }
+
+    /// <summary>
+    /// First state fetch. The session id travels in a header RequestHandler fills from the launcher
+    /// args, so this works before login; the profile's SkillManager is built later and reads the
+    /// allocations through the Level patch. Re-fetched on every skills screen open.
+    /// </summary>
+    private void Start()
+    {
+        if (_patchManager == null) return;
+
+        SkillPointsClient.Refresh();
+        var state = SkillPointsClient.State;
+        Log.LogInfo(SkillPointsClient.Enabled
+            ? $"Skill points: {state.Available}/{state.Total} available, {state.Allocated.Count} skill(s) allocated"
+            : "Skill points: off (server has it disabled, is missing the mod, or answered a different version)");
     }
 }
