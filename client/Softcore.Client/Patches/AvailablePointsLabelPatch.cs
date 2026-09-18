@@ -9,8 +9,9 @@ namespace Softcore.Client.Patches;
 
 /// <summary>
 /// P10 (plans/8-skill-points-plan.md §4.5): re-fetches the state every time the skills screen opens (so a
-/// raid's refunds show without a restart) and puts the "available points" label in the header. Runs
-/// before the rows are built, so <see cref="SkillPanelButtonsPatch"/> sees fresh state.
+/// raid's refunds show without a restart) and puts the "available points" label in the header. The fetch
+/// is asynchronous: the rows and the label render from the last known state and re-render through
+/// <see cref="SkillPointsClient.StateChanged"/> when the answer lands, a frame or two later.
 /// </summary>
 internal class AvailablePointsLabelPatch : ModulePatch
 {

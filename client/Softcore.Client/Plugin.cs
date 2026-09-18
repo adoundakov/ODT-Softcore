@@ -57,16 +57,19 @@ public class Plugin : BaseUnityPlugin
     /// <summary>
     /// First state fetch. The session id travels in a header RequestHandler fills from the launcher
     /// args, so this works before login; the profile's SkillManager is built later and reads the
-    /// allocations through the Level patch. Re-fetched on every skills screen open.
+    /// allocations through the Level patch. Re-fetched on every skills screen open. The answer is
+    /// logged when it arrives (SkillPointsClient.Apply).
     /// </summary>
     private void Start()
     {
         if (_patchManager == null) return;
 
         SkillPointsClient.Refresh();
-        var state = SkillPointsClient.State;
-        Log.LogInfo(SkillPointsClient.Enabled
-            ? $"Skill points: {state.Available}/{state.Total} available, {state.Allocated.Count} skill(s) allocated"
-            : "Skill points: off (server has it disabled, is missing the mod, or answered a different version)");
+    }
+
+    /// <summary>Applies finished server requests on the main thread.</summary>
+    private void Update()
+    {
+        SkillPointsClient.Update();
     }
 }

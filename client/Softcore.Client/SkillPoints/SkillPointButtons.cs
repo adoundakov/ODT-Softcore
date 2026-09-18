@@ -39,7 +39,8 @@ internal class SkillPointButtons : MonoBehaviour
 
     private void Allocate(int delta)
     {
-        // Apply() inside recomputes the skill's buffs and fires its UI events; StateChanged re-renders every row
+        // Asynchronous; when the answer lands, Apply() recomputes the skill's buffs, fires its UI events and
+        // StateChanged re-renders every row. A click while a request is pending is dropped.
         SkillPointsClient.Allocate(_skill.Id, delta);
     }
 
