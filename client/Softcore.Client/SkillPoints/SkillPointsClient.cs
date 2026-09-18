@@ -96,26 +96,8 @@ internal static class SkillPointsClient
             }
         }
 
-        var changed = Diff(SkillLevels.Allocated, allocated);
-        SkillLevels.Allocated = allocated;
-        RecomputeSkills(changed);
+        RecomputeSkills(SkillLevels.SetAllocated(allocated));
         StateChanged?.Invoke();
-    }
-
-    private static List<ESkillId> Diff(Dictionary<ESkillId, int> before, Dictionary<ESkillId, int> after)
-    {
-        var changed = new List<ESkillId>();
-        foreach (var pair in after)
-        {
-            if (!before.TryGetValue(pair.Key, out var old) || old != pair.Value) changed.Add(pair.Key);
-        }
-
-        foreach (var key in before.Keys)
-        {
-            if (!after.ContainsKey(key)) changed.Add(key);
-        }
-
-        return changed;
     }
 
     /// <summary>
